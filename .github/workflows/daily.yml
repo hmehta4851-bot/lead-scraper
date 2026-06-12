@@ -5,6 +5,9 @@ on:
     - cron: "30 2 * * *"  # 8:00 AM IST (UTC+5:30)
   workflow_dispatch:       # manual trigger button
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: write
   id-token: write          # needed for Workload Identity Federation
