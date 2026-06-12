@@ -9,8 +9,10 @@ def send_notification(subject, body):
     to_email = os.environ.get("NOTIFY_EMAIL", "hmehta4851@gmail.com")
 
     if not gmail_user or not gmail_pass:
-        print(f"[NOTIFY SKIP] No Gmail credentials. Subject: {subject}")
-        return
+        raise RuntimeError(
+            "Email notification required but GMAIL_USER / GMAIL_APP_PASSWORD not set. "
+            "Add both as GitHub repository secrets to enable daily lead reports."
+        )
 
     msg = MIMEText(body)
     msg["Subject"] = subject

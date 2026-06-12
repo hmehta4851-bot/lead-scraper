@@ -118,11 +118,17 @@ def main():
 
         if not was_tier1_exhausted and new_state.get("exhausted_tier1"):
             print("\n[NOTIFY] Tier 1 exhausted — sending email")
-            notify_tier1_exhausted()
+            try:
+                notify_tier1_exhausted()
+            except Exception as e:
+                print(f"[NOTIFY WARN] Tier 1 alert skipped: {e}")
 
         if not was_tier2_exhausted and new_state.get("exhausted_tier2"):
             print("\n[NOTIFY] Tier 2 exhausted — sending email")
-            notify_tier2_exhausted()
+            try:
+                notify_tier2_exhausted()
+            except Exception as e:
+                print(f"[NOTIFY WARN] Tier 2 alert skipped: {e}")
 
         notify_daily_summary(city, total_added, per_product_counts)
 
