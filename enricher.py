@@ -153,7 +153,7 @@ def _extract_contact_from_page(soup):
     return "", ""
 
 
-def enrich_website(url):
+def enrich_website(url, max_pages: int = 5):
     """Returns dict with email, phone, contact_person, designation (all may be empty)."""
     result = {"email": "", "phone": "", "contact_person": "", "designation": ""}
 
@@ -169,7 +169,7 @@ def enrich_website(url):
     all_emails = []
     all_phones = []
 
-    for page_url in pages_to_check[:5]:
+    for page_url in pages_to_check[:max_pages]:
         html = _get(page_url)
         if not html:
             continue

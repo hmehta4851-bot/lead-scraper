@@ -7,7 +7,9 @@ from state import load_state, get_today_city, advance_city
 from sheets import append_leads
 from notifier import notify_tier1_exhausted, notify_tier2_exhausted, notify_daily_summary
 from scrapers import sulekha, googlemaps, indiamart, exportersindia
+from scrapers import tradeindia, duckduckgo
 from scrapers import browser as scraper_browser
+from enricher import enrich_website
 
 
 def is_actionable_lead(lead):
@@ -20,52 +22,110 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
     all_raw = []
 
     for kw in keyword_list:
-        # Google Maps — primary source (works for all product types)
+        # 1. Google Maps — primary (local businesses, all types)
         print(f"  [Google Maps] {kw} in {city}")
         results = googlemaps.search(kw, city, max_results=40)
         all_raw.extend(results)
         time.sleep(1)
-
         if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
             break
 
-        # Sulekha — secondary source (strong for service contractors)
+        # 2. Sulekha — strong for service contractors
         print(f"  [Sulekha] {kw} in {city}")
         results = sulekha.search(kw, city, max_results=15)
         all_raw.extend(results)
         time.sleep(1)
-
         if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
             break
 
-        # ExportersIndia — tertiary source (B2B suppliers and dealers)
+        # 3. ExportersIndia — B2B suppliers and dealers
         print(f"  [ExportersIndia] {kw} in {city}")
         results = exportersindia.search(kw, city, max_results=20)
         all_raw.extend(results)
         time.sleep(1)
-
         if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
             break
 
-        # IndiaMART — quaternary source (unmasked phones only)
+        # 4. IndiaMART — unmasked phones only
         print(f"  [IndiaMART] {kw} in {city}")
         results = indiamart.search(kw, city, max_results=25)
         all_raw.extend(results)
         time.sleep(1)
-
         if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
             break
 
-    seen_phones = set()
+        # 5. TradeIndia — additional B2B directory
+        print(f"  [TradeIndia] {kw} in {city}")
+        results = tradeindia.search(kw, city, max_results=20)
+        all_raw.extend(results)
+        time.sleep(1)
+        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
+            break
+
+        # 6. DuckDuckGo — web-wide organic search (finds businesses not on directories)
+        print(f"  [DuckDuckGo] {kw} in {city}")
+        results = duckduckgo.search(kw, city, max_results=15)
+        all_raw.extend(results)
+        time.sleep(1)
+        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
+            break
+
+    # Dedup: by phone (primary) or company+website for phone-less leads
+    seen_phones: set = set()
+    seen_keys: set = set()
     deduped = []
     for lead in all_raw:
         phone = str(lead.get("phone", "")).strip()
-        if phone and phone not in seen_phones:
-            seen_phones.add(phone)
+        company_key = str(lead.get("company", "")).lower().strip()[:50]
+        if phone:
+            if phone not in seen_phones:
+                seen_phones.add(phone)
+                deduped.append(lead)
+        elif lead.get("website") and company_key and company_key not in seen_keys:
+            seen_keys.add(company_key)
             deduped.append(lead)
 
-    actionable = [lead for lead in deduped if is_actionable_lead(lead)]
-    return actionable[:target]
+    # Enrich website-only leads — visit company site to resolve phone number
+    no_phone = [l for l in deduped if not l.get("phone") and l.get("website")]
+    if no_phone:
+        print(f"  [Enricher] Resolving phones for {min(len(no_phone), 15)} website-only leads...")
+        for lead in no_phone[:15]:
+            try:
+                enriched = enrich_website(lead["website"], max_pages=2)
+                p = enriched.get("phone", "")
+                if p and p not in seen_phones:
+                    lead["phone"] = p
+                    seen_phones.add(p)
+                if enriched.get("email") and not lead.get("email"):
+                    lead["email"] = enriched["email"]
+                if enriched.get("contact_person") and not lead.get("contact_person"):
+                    lead["contact_person"] = enriched["contact_person"]
+                    lead["designation"] = enriched.get("designation", "")
+            except Exception:
+                pass
+
+    actionable = [l for l in deduped if is_actionable_lead(l)]
+    top = actionable[:target]
+
+    # Enrich top leads — fill email + contact person from company website (free)
+    needs_enrich = [
+        l for l in top
+        if l.get("website") and (not l.get("email") or not l.get("contact_person"))
+    ]
+    if needs_enrich:
+        print(f"  [Enricher] Enriching {min(len(needs_enrich), 10)} leads for email & contact...")
+        for lead in needs_enrich[:10]:
+            try:
+                enriched = enrich_website(lead["website"], max_pages=2)
+                if not lead.get("email") and enriched.get("email"):
+                    lead["email"] = enriched["email"]
+                if not lead.get("contact_person") and enriched.get("contact_person"):
+                    lead["contact_person"] = enriched["contact_person"]
+                    lead["designation"] = enriched.get("designation", lead.get("designation", ""))
+            except Exception:
+                pass
+
+    return top
 
 
 def format_lead_row(lead, product_name, city):
