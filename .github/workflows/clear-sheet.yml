@@ -1,0 +1,34 @@
+name: Clear Sheet (One-Time Reset)
+
+on:
+  workflow_dispatch:   # manual trigger only
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  clear:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: "projects/505761337329/locations/global/workloadIdentityPools/github-actions/providers/github-actions"
+          service_account: "lead-scraper@turnkey-pottery-499205-u2.iam.gserviceaccount.com"
+
+      - name: Clear all sheet tabs
+        run: python clear_sheet.py
