@@ -6,7 +6,7 @@ from config import PRODUCTS, SHEET_ID, SHEET_HEADERS, LEADS_PER_PRODUCT, TIER1_C
 from state import load_state, get_today_city, advance_city
 from sheets import append_leads
 from notifier import notify_tier1_exhausted, notify_tier2_exhausted, notify_daily_summary
-from scrapers import sulekha, googlemaps
+from scrapers import sulekha, googlemaps, indiamart, exportersindia
 from scrapers import browser as scraper_browser
 
 
@@ -22,7 +22,7 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
     for kw in keyword_list:
         # Google Maps — primary source (works for all product types)
         print(f"  [Google Maps] {kw} in {city}")
-        results = googlemaps.search(kw, city, max_results=20)
+        results = googlemaps.search(kw, city, max_results=40)
         all_raw.extend(results)
         time.sleep(1)
 
@@ -32,6 +32,24 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
         # Sulekha — secondary source (strong for service contractors)
         print(f"  [Sulekha] {kw} in {city}")
         results = sulekha.search(kw, city, max_results=15)
+        all_raw.extend(results)
+        time.sleep(1)
+
+        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
+            break
+
+        # ExportersIndia — tertiary source (B2B suppliers and dealers)
+        print(f"  [ExportersIndia] {kw} in {city}")
+        results = exportersindia.search(kw, city, max_results=20)
+        all_raw.extend(results)
+        time.sleep(1)
+
+        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
+            break
+
+        # IndiaMART — quaternary source (unmasked phones only)
+        print(f"  [IndiaMART] {kw} in {city}")
+        results = indiamart.search(kw, city, max_results=25)
         all_raw.extend(results)
         time.sleep(1)
 

@@ -20,7 +20,7 @@ def _clean_phone(raw: str) -> str:
     return digits[-10:] if len(digits) >= 10 else ""
 
 
-def search(keyword: str, city: str, max_results: int = 20) -> list:
+def search(keyword: str, city: str, max_results: int = 40) -> list:
     leads = []
     query = f"{keyword} {city} india"
     url = f"https://www.google.com/maps/search/{query.replace(' ', '+')}"
@@ -48,9 +48,9 @@ def search(keyword: str, city: str, max_results: int = 20) -> list:
         try:
             panel = page.query_selector('div[role="feed"]')
             if panel:
-                for _ in range(3):
-                    panel.evaluate("el => el.scrollBy(0, 600)")
-                    page.wait_for_timeout(1500)
+                for _ in range(6):
+                    panel.evaluate("el => el.scrollBy(0, 800)")
+                    page.wait_for_timeout(1200)
         except Exception:
             pass
 
