@@ -1,3 +1,4 @@
+import re
 import sys
 import time
 from datetime import date
@@ -7,7 +8,7 @@ from state import load_state, get_today_city, advance_city
 from sheets import append_leads
 from notifier import notify_tier1_exhausted, notify_tier2_exhausted, notify_daily_summary
 from scrapers import sulekha, googlemaps, indiamart, exportersindia
-from scrapers import tradeindia, duckduckgo
+from scrapers import tradeindia, duckduckgo, bing, yellowpages, justdial
 from scrapers import browser as scraper_browser
 from enricher import enrich_website
 
@@ -16,6 +17,37 @@ def is_actionable_lead(lead):
     """A company with a callable phone number is usable by the sales team."""
     required = ["company", "phone"]
     return all(str(lead.get(f, "")).strip() for f in required)
+
+
+def _lead_score(lead) -> int:
+    """Higher score = more complete data = better lead."""
+    score = 0
+    if lead.get("phone"): score += 3
+    if lead.get("email"): score += 2
+    if lead.get("contact_person"): score += 2
+    if lead.get("website"): score += 1
+    if lead.get("designation"): score += 1
+    return score
+
+
+def _norm_phone(p: str) -> str:
+    digits = re.sub(r"\D", "", str(p))
+    if digits.startswith("91") and len(digits) == 12:
+        digits = digits[2:]
+    if digits.startswith("0") and len(digits) == 11:
+        digits = digits[1:]
+    return digits[-10:] if len(digits) >= 10 else digits
+
+
+_COMPANY_NOISE_RE = re.compile(
+    r"\b(pvt\.?\s*ltd\.?|private\s+limited|limited|llp|inc\.?|india|co\.)\b",
+    re.I,
+)
+
+
+def _norm_company(name: str) -> str:
+    n = _COMPANY_NOISE_RE.sub("", name.lower()).strip()
+    return re.sub(r"\s+", " ", n).strip()[:40]
 
 
 def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
@@ -70,16 +102,44 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
         if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
             break
 
-    # Dedup: by phone (primary) or company+website for phone-less leads
+        # 7. Bing — different crawl index than DuckDuckGo
+        print(f"  [Bing] {kw} in {city}")
+        results = bing.search(kw, city, max_results=15)
+        all_raw.extend(results)
+        time.sleep(1)
+        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
+            break
+
+        # 8. YellowPages India — SMB directory
+        print(f"  [YellowPages] {kw} in {city}")
+        results = yellowpages.search(kw, city, max_results=15)
+        all_raw.extend(results)
+        time.sleep(1)
+        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
+            break
+
+        # 9. JustDial — India's largest local directory (graceful fallback if blocked)
+        print(f"  [JustDial] {kw} in {city}")
+        results = justdial.search(kw, city, max_results=20)
+        all_raw.extend(results)
+        time.sleep(1)
+        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
+            break
+
+    # Dedup: normalize phones + company names to catch duplicates across sources
     seen_phones: set = set()
     seen_keys: set = set()
     deduped = []
     for lead in all_raw:
-        phone = str(lead.get("phone", "")).strip()
-        company_key = str(lead.get("company", "")).lower().strip()[:50]
-        if phone:
-            if phone not in seen_phones:
-                seen_phones.add(phone)
+        raw_phone = str(lead.get("phone", "")).strip()
+        phone_norm = _norm_phone(raw_phone) if raw_phone else ""
+        # Overwrite with normalized form so downstream is consistent
+        if phone_norm:
+            lead["phone"] = phone_norm
+        company_key = _norm_company(str(lead.get("company", "")))
+        if phone_norm:
+            if phone_norm not in seen_phones:
+                seen_phones.add(phone_norm)
                 deduped.append(lead)
         elif lead.get("website") and company_key and company_key not in seen_keys:
             seen_keys.add(company_key)
@@ -105,6 +165,8 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
                 pass
 
     actionable = [l for l in deduped if is_actionable_lead(l)]
+    # Sort by data completeness — best leads first, then take top N
+    actionable.sort(key=_lead_score, reverse=True)
     top = actionable[:target]
 
     # Enrich top leads — fill email + contact person from company website (free)

@@ -16,10 +16,17 @@ HEADERS = {
 
 EMAIL_RE = re.compile(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}")
 PHONE_RE = re.compile(r"(?:\+91[\-\s]?)?[6-9](?:[\-\s]?\d){9}")
+WA_RE = re.compile(
+    r"wa\.me/\+?91([6-9]\d{9})"
+    r"|wa\.me/([6-9]\d{9})"
+    r"|api\.whatsapp\.com/send\?phone=91([6-9]\d{9})"
+    r"|api\.whatsapp\.com/send\?phone=([6-9]\d{9})"
+)
 
 CONTACT_PATHS = [
     "/contact", "/contact-us", "/contactus", "/contact_us",
     "/about", "/about-us", "/reach-us", "/get-in-touch",
+    "/team", "/our-team", "/management", "/leadership", "/about-us/team",
 ]
 
 DESIGNATIONS = (
@@ -176,11 +183,25 @@ def enrich_website(url, max_pages: int = 5):
         soup = BeautifulSoup(html, "html.parser")
         text = soup.get_text(" ", strip=True)
 
+        # mailto: links are the most reliable email source — prioritize them
+        for a in soup.find_all("a", href=re.compile(r"^mailto:", re.I)):
+            raw_email = a.get("href", "")[7:].split("?")[0].strip().lower()
+            cleaned = _extract_emails(raw_email)
+            all_emails = cleaned + all_emails  # prepend = higher priority
+
         emails = _extract_emails(text)
         phones = _extract_phones(text)
 
         all_emails.extend(emails)
         all_phones.extend(phones)
+
+        # WhatsApp links contain verified phone numbers (most reliable source)
+        for a in soup.find_all("a", href=True):
+            m = WA_RE.search(a["href"])
+            if m:
+                wa_phone = next((g for g in m.groups() if g), "")
+                if wa_phone and re.match(r"[6-9]\d{9}$", wa_phone):
+                    all_phones = [wa_phone] + all_phones  # prepend = higher priority
 
         if not result["contact_person"]:
             name, designation = _extract_contact_from_page(soup)
