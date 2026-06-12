@@ -11,15 +11,22 @@ SCOPES = [
 
 
 def get_client():
+    # 1. Service account JSON from env (GitHub Actions secret or local .env)
     creds_json = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON")
     if creds_json:
         info = json.loads(creds_json)
         creds = Credentials.from_service_account_info(info, scopes=SCOPES)
-    else:
-        creds = Credentials.from_service_account_file(
-            os.path.join(os.path.dirname(__file__), "service_account.json"),
-            scopes=SCOPES,
-        )
+        return gspread.authorize(creds)
+
+    # 2. Service account JSON file (local dev)
+    sa_file = os.path.join(os.path.dirname(__file__), "service_account.json")
+    if os.path.exists(sa_file):
+        creds = Credentials.from_service_account_file(sa_file, scopes=SCOPES)
+        return gspread.authorize(creds)
+
+    # 3. Application Default Credentials (Workload Identity Federation / gcloud auth)
+    import google.auth
+    creds, _ = google.auth.default(scopes=SCOPES)
     return gspread.authorize(creds)
 
 

@@ -3,3 +3,6 @@ service_account.json
 __pycache__/
 .env
 *.log
+.playwright-mcp/
+*.tar.gz
+*.tar

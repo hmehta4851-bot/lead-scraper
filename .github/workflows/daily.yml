@@ -5,6 +5,10 @@ on:
     - cron: "30 2 * * *"  # 8:00 AM IST (UTC+5:30)
   workflow_dispatch:       # manual trigger button
 
+permissions:
+  contents: write
+  id-token: write          # needed for Workload Identity Federation
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
@@ -23,6 +27,16 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      # ── Auth option A: Workload Identity Federation (no JSON key needed) ──
+      # Uncomment this block once WIF provider is set up in GCP.
+      # Remove GOOGLE_SERVICE_ACCOUNT_JSON secret when using this.
+      #
+      # - name: Authenticate to GCP via WIF
+      #   uses: google-github-actions/auth@v2
+      #   with:
+      #     workload_identity_provider: "projects/505761337329/locations/global/workloadIdentityPools/github-actions/providers/github"
+      #     service_account: "lead-scraper@turnkey-pottery-499205-u2.iam.gserviceaccount.com"
 
       - name: Run scraper
         env:
