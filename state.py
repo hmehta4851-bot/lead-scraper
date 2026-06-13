@@ -8,6 +8,8 @@ DEFAULT_STATE = {
     "city_index": 0,
     "exhausted_tier1": False,
     "exhausted_tier2": False,
+    "keyword_cursors": {},
+    "last_transition": "",
 }
 
 
@@ -22,8 +24,12 @@ def load_state():
 
 
 def save_state(state):
-    with open(STATE_FILE, "w") as f:
+    temp_file = f"{STATE_FILE}.tmp"
+    with open(temp_file, "w") as f:
         json.dump(state, f, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(temp_file, STATE_FILE)
 
 
 def get_today_city(state, tier1_cities, tier2_cities):
@@ -36,6 +42,7 @@ def get_today_city(state, tier1_cities, tier2_cities):
 
 
 def advance_city(state, tier1_cities, tier2_cities):
+    state["last_transition"] = ""
     if state["tier"] == 1:
         cities = tier1_cities
     else:
@@ -46,10 +53,12 @@ def advance_city(state, tier1_cities, tier2_cities):
     if state["city_index"] >= len(cities):
         if state["tier"] == 1:
             state["exhausted_tier1"] = True
+            state["last_transition"] = "tier1_to_tier2"
             state["tier"] = 2
             state["city_index"] = 0
         else:
             state["exhausted_tier2"] = True
+            state["last_transition"] = "tier2_to_tier1"
             state["tier"] = 1
             state["city_index"] = 0
 

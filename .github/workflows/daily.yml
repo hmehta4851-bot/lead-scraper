@@ -8,6 +8,10 @@ on:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+concurrency:
+  group: sunzone-lead-scraper
+  cancel-in-progress: false
+
 permissions:
   contents: write
   id-token: write          # needed for Workload Identity Federation
@@ -15,7 +19,7 @@ permissions:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 300
 
     steps:
       - name: Checkout repo

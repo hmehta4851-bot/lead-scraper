@@ -46,7 +46,7 @@ def search(keyword: str, city: str, max_results: int = 25) -> list:
     query = f"{keyword} {city}"
     url = f"https://www.indiamart.com/search.mp?ss={query.replace(' ', '+')}&f=&prdsrc=1"
 
-    page = get_page()
+    page = get_page("IndiaMART")
     try:
         page.goto(url, timeout=35000, wait_until="commit")
         page.wait_for_timeout(4000)

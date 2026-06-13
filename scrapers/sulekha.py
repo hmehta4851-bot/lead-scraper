@@ -6,7 +6,6 @@ Gets phone from listing; email from profile page.
 import re
 import time
 from scrapers.browser import get_page
-from enricher import enrich_website
 
 PHONE_RE = re.compile(r"[6-9]\d{9}")
 EMAIL_RE = re.compile(
@@ -33,7 +32,7 @@ def _slugify(text: str) -> str:
 
 
 def _get_profile_data(profile_url: str) -> dict:
-    page = get_page()
+    page = get_page("SulekhaProfile")
     result = {"email": "", "contact_person": "", "designation": "", "website": ""}
     try:
         page.goto(profile_url, timeout=20000, wait_until="domcontentloaded")
@@ -96,7 +95,7 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
         "li[class*='result']",
     ]
 
-    page = get_page()
+    page = get_page("Sulekha")
     working_url = None
     cards = []
 
@@ -120,8 +119,9 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
         print(f"  [Sulekha] No listings found — {kw_slug}/{city_slug}")
         return leads
 
-    seen_phones = set()
-
+    # Convert DOM handles to plain data before profile navigation. This keeps
+    # every listing valid even if the profile page changes navigation state.
+    listing_data = []
     for card in cards[:max_results]:
         try:
             # Company name — try multiple selectors, fall back to first non-empty line
@@ -164,11 +164,36 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
                     phone = m.group()
 
             # Profile URL
-            profile_link = card.query_selector(".business .name a[href*='/profile/']")
+            profile_link = None
+            for selector in (
+                "a[href*='/profile/']",
+                ".business .name a[href]",
+                "h2 a[href]",
+                "h3 a[href]",
+            ):
+                profile_link = card.query_selector(selector)
+                if profile_link:
+                    break
             profile_url = profile_link.get_attribute("href") if profile_link else ""
 
             if not phone:
                 continue
+            listing_data.append(
+                {
+                    "company": company,
+                    "phone": phone,
+                    "profile_url": profile_url,
+                }
+            )
+        except Exception:
+            continue
+
+    seen_phones = set()
+    for listing in listing_data:
+        try:
+            company = listing["company"]
+            phone = listing["phone"]
+            profile_url = listing["profile_url"]
             if phone and phone in seen_phones:
                 continue
             if phone:
@@ -184,13 +209,6 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
             contact_person = enriched.get("contact_person", "")
             designation = enriched.get("designation", "")
             website = enriched.get("website", "")
-
-            # Fallback enrichment from company website
-            if website and not email:
-                web_data = enrich_website(website)
-                email = web_data.get("email", "")
-                if not contact_person:
-                    contact_person = web_data.get("contact_person", "")
 
             leads.append(
                 {

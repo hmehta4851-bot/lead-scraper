@@ -36,9 +36,42 @@ def ensure_headers(ws, headers):
         ws.update("A1", [headers])
 
 
-def append_leads(sheet_id, tab_name, headers, leads):
+def load_existing_phones(sheet_id, tab_names):
+    client = get_client()
+    sh = client.open_by_key(sheet_id)
+    phones = set()
+    for tab_name in dict.fromkeys(tab_names):
+        try:
+            ws = sh.worksheet(tab_name)
+            values = ws.get_all_values()
+            headers = values[0] if values else []
+            if "Phone" not in headers:
+                continue
+            phone_col = headers.index("Phone")
+            for row in values[1:]:
+                if len(row) > phone_col:
+                    phone = _normalize_phone(row[phone_col])
+                    if phone:
+                        phones.add(phone)
+        except gspread.exceptions.WorksheetNotFound:
+            continue
+    return phones
+
+
+def _normalize_phone(value):
+    return "".join(c for c in str(value) if c.isdigit())[-10:]
+
+
+def append_leads(
+    sheet_id,
+    tab_name,
+    headers,
+    leads,
+    dedupe_tabs=None,
+    existing_phones=None,
+):
     if not leads:
-        return 0
+        return []
     client = get_client()
     sh = client.open_by_key(sheet_id)
 
@@ -49,28 +82,28 @@ def append_leads(sheet_id, tab_name, headers, leads):
 
     ensure_headers(ws, headers)
 
-    existing_phones = set()
-    try:
-        all_vals = ws.get_all_values()
-        phone_col = headers.index("Phone")
-        for row in all_vals[1:]:
-            if len(row) > phone_col and row[phone_col]:
-                existing_phones.add(row[phone_col].strip())
-    except Exception:
-        pass
+    if existing_phones is None:
+        existing_phones = load_existing_phones(
+            sheet_id,
+            dedupe_tabs or [tab_name],
+        )
 
     rows_to_add = []
+    accepted_leads = []
+    accepted_phones = []
     for lead in leads:
-        phone = str(lead.get("Phone", "")).strip()
+        phone = _normalize_phone(lead.get("Phone", ""))
         if phone and phone in existing_phones:
             continue
         row = [str(lead.get(h, "")) for h in headers]
         rows_to_add.append(row)
+        accepted_leads.append(lead)
         if phone:
-            existing_phones.add(phone)
+            accepted_phones.append(phone)
 
     if rows_to_add:
         ws.append_rows(rows_to_add, value_input_option="USER_ENTERED")
+        existing_phones.update(accepted_phones)
         time.sleep(1)
 
-    return len(rows_to_add)
+    return accepted_leads

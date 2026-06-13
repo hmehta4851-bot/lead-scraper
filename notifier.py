@@ -79,7 +79,15 @@ def notify_progress_update(city, completed, total, leads_so_far, elapsed_min):
     )
 
 
-def notify_daily_summary(city, total_leads, per_product, per_source=None, quality=None, duration_min=None):
+def notify_daily_summary(
+    city,
+    total_leads,
+    per_product,
+    per_source=None,
+    quality=None,
+    duration_min=None,
+    source_failures=None,
+):
     sep = "─" * 42
 
     # Product breakdown
@@ -107,6 +115,9 @@ def notify_daily_summary(city, total_leads, per_product, per_source=None, qualit
         ]
 
     duration_str = f"{duration_min} minutes" if duration_min else "—"
+    failure_lines = []
+    for source, count in sorted((source_failures or {}).items()):
+        failure_lines.append(f"  {source:<20} {count:>4} failed attempts")
 
     body = f"""
 ╔══════════════════════════════════════════╗
@@ -143,6 +154,11 @@ def notify_daily_summary(city, total_leads, per_product, per_source=None, qualit
   3. ExportersIndia   8. YellowPages India
   4. IndiaMART        9. JustDial
   5. TradeIndia
+
+{sep}
+  SOURCE HEALTH
+{sep}
+{chr(10).join(failure_lines) if failure_lines else "  All source attempts completed without uncaught errors"}
 
 {sep}
 Sunzone Prospect Flow Automation

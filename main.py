@@ -1,230 +1,271 @@
+"""Autonomous, vertical-first lead collection for Sunzone Sports & Play."""
+
+from __future__ import annotations
+
 import re
 import sys
 import time
+from collections import Counter
 from datetime import date
+from urllib.parse import urlparse
 
-from config import PRODUCTS, SHEET_ID, SHEET_HEADERS, LEADS_PER_PRODUCT, TIER1_CITIES, TIER2_CITIES, COMPETITOR_BRANDS
-from state import load_state, get_today_city, advance_city
-from sheets import append_leads
-from notifier import (
-    notify_tier1_exhausted, notify_tier2_exhausted,
-    notify_daily_summary, notify_scraper_started, notify_progress_update,
+from config import (
+    COMPETITOR_BRANDS,
+    KEYWORDS_PER_PRODUCT_PER_RUN,
+    LEADS_PER_PRODUCT,
+    SHEET_HEADERS,
+    SHEET_ID,
+    SOURCE_LEAD_CAP,
+    SOURCE_RESULT_LIMIT,
+    TIER1_CITIES,
+    TIER2_CITIES,
+    iter_products,
 )
-from scrapers import sulekha, googlemaps, exportersindia
-from scrapers import tradeindia, duckduckgo, bing, yellowpages
-from scrapers import indiamart, justdial
-from scrapers import browser as scraper_browser
 from enricher import enrich_website, resolve_contact_names
+from keyword_library import cursor_key, select_rotating_keywords
+from notifier import (
+    notify_daily_summary,
+    notify_progress_update,
+    notify_scraper_started,
+    notify_tier1_exhausted,
+    notify_tier2_exhausted,
+)
+from scrapers import (
+    bing,
+    duckduckgo,
+    exportersindia,
+    googlemaps,
+    indiamart,
+    justdial,
+    sulekha,
+    tradeindia,
+    yellowpages,
+)
+from scrapers import browser as scraper_browser
+from sheets import append_leads, load_existing_phones
+from state import advance_city, get_today_city, load_state, save_state
 
 
-_OWN_BRAND_RE = re.compile(r"\bsunzone\b", re.I)
+SOURCE_REGISTRY = (
+    ("Sulekha", sulekha.search),
+    ("ExportersIndia", exportersindia.search),
+    ("TradeIndia", tradeindia.search),
+    ("DuckDuckGo", duckduckgo.search),
+    ("Bing", bing.search),
+    ("YellowPages", yellowpages.search),
+    ("IndiaMART", indiamart.search),
+    ("JustDial", justdial.search),
+    ("Google Maps", googlemaps.search),
+)
 
-# Competitor pattern built from config list — exact substring match on lowercased company name
+_OWN_BRAND_RE = re.compile(r"\bsunzone\b|\bsunzone\.in\b", re.I)
 _COMPETITOR_RE = re.compile(
-    "|".join(re.escape(c) for c in COMPETITOR_BRANDS),
+    "|".join(re.escape(brand) for brand in COMPETITOR_BRANDS),
     re.I,
 )
-
-
-def is_own_brand(lead) -> bool:
-    company = str(lead.get("company", ""))
-    return bool(_OWN_BRAND_RE.search(company))
-
-
-def is_competitor(lead) -> bool:
-    company = str(lead.get("company", "")).lower()
-    return bool(_COMPETITOR_RE.search(company))
-
-
-def is_actionable_lead(lead):
-    """Phone-bearing lead that is neither own brand nor a known competitor."""
-    required = ["company", "phone"]
-    if not all(str(lead.get(f, "")).strip() for f in required):
-        return False
-    if is_own_brand(lead):
-        return False
-    if is_competitor(lead):
-        return False
-    return True
-
-
-def _lead_score(lead) -> int:
-    """Higher score = more complete data = better lead."""
-    score = 0
-    if lead.get("phone"): score += 3
-    if lead.get("email"): score += 2
-    if lead.get("contact_person"): score += 2
-    if lead.get("website"): score += 1
-    if lead.get("designation"): score += 1
-    return score
-
-
-def _norm_phone(p: str) -> str:
-    digits = re.sub(r"\D", "", str(p))
-    if digits.startswith("91") and len(digits) == 12:
-        digits = digits[2:]
-    if digits.startswith("0") and len(digits) == 11:
-        digits = digits[1:]
-    return digits[-10:] if len(digits) >= 10 else digits
-
-
 _COMPANY_NOISE_RE = re.compile(
     r"\b(pvt\.?\s*ltd\.?|private\s+limited|limited|llp|inc\.?|india|co\.)\b",
     re.I,
 )
 
 
+def _lead_identity_text(lead: dict) -> str:
+    website = str(lead.get("website", ""))
+    email = str(lead.get("email", ""))
+    host = urlparse(
+        website if "://" in website else f"https://{website}"
+    ).netloc
+    return " ".join(
+        (
+            str(lead.get("company", "")),
+            website,
+            host,
+            email.partition("@")[2],
+        )
+    )
+
+
+def is_own_brand(lead: dict) -> bool:
+    return bool(_OWN_BRAND_RE.search(_lead_identity_text(lead)))
+
+
+def is_competitor(lead: dict) -> bool:
+    return bool(_COMPETITOR_RE.search(_lead_identity_text(lead)))
+
+
+def is_actionable_lead(lead: dict) -> bool:
+    """Accept contactable prospects while excluding our own and competitors."""
+    if not str(lead.get("company", "")).strip():
+        return False
+    if not str(lead.get("phone", "")).strip():
+        return False
+    return not is_own_brand(lead) and not is_competitor(lead)
+
+
+def _lead_score(lead: dict) -> int:
+    score = 35
+    if lead.get("phone"):
+        score += 25
+    if lead.get("email"):
+        score += 15
+    if lead.get("contact_person"):
+        score += 10
+    if lead.get("website"):
+        score += 10
+    if lead.get("designation"):
+        score += 5
+    return min(score, 100)
+
+
+def _norm_phone(value: str) -> str:
+    digits = re.sub(r"\D", "", str(value))
+    if digits.startswith("91") and len(digits) == 12:
+        digits = digits[2:]
+    if digits.startswith("0") and len(digits) == 11:
+        digits = digits[1:]
+    return digits[-10:] if len(digits) >= 10 else ""
+
+
 def _norm_company(name: str) -> str:
-    n = _COMPANY_NOISE_RE.sub("", name.lower()).strip()
-    return re.sub(r"\s+", " ", n).strip()[:40]
+    normalized = _COMPANY_NOISE_RE.sub("", name.lower()).strip()
+    return re.sub(r"[^a-z0-9]+", " ", normalized).strip()[:80]
 
 
-def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
-    all_raw = []
+def run_all_sources(keyword: str, city: str) -> tuple[list[dict], dict]:
+    """Attempt every configured source; one failure never blocks another."""
+    leads: list[dict] = []
+    telemetry = {"attempted": [], "failed": {}, "raw_counts": {}}
+    for source_name, search in SOURCE_REGISTRY:
+        telemetry["attempted"].append(source_name)
+        print(f"  [{source_name}] {keyword} in {city}")
+        try:
+            found = search(keyword, city, max_results=SOURCE_RESULT_LIMIT) or []
+            for lead in found:
+                lead.setdefault("source", source_name)
+                lead["search_keyword"] = keyword
+            leads.extend(found)
+            telemetry["raw_counts"][source_name] = len(found)
+            print(f"  [{source_name}] +{len(found)} raw")
+        except Exception as exc:
+            telemetry["failed"][source_name] = f"{type(exc).__name__}: {exc}"
+            telemetry["raw_counts"][source_name] = 0
+            print(f"  [{source_name}] FAILED: {exc}")
+        time.sleep(0.5)
+    return leads, telemetry
 
-    for kw in keyword_list:
-        # Non-Google sources run FIRST so their entries win dedup over Google Maps
-        print(f"  [Sulekha] {kw} in {city}")
-        before = len(all_raw)
-        all_raw.extend(sulekha.search(kw, city, max_results=20))
-        print(f"  [Sulekha] +{len(all_raw)-before} raw")
-        time.sleep(1)
 
-        print(f"  [ExportersIndia] {kw} in {city}")
-        before = len(all_raw)
-        all_raw.extend(exportersindia.search(kw, city, max_results=25))
-        print(f"  [ExportersIndia] +{len(all_raw)-before} raw")
-        time.sleep(1)
+def _deduplicate(raw_leads: list[dict]) -> list[dict]:
+    seen_phones: set[str] = set()
+    seen_companies: set[str] = set()
+    output: list[dict] = []
+    for lead in raw_leads:
+        phone = _norm_phone(str(lead.get("phone", "")))
+        company = _norm_company(str(lead.get("company", "")))
+        if phone:
+            lead["phone"] = phone
+            if phone in seen_phones:
+                continue
+            seen_phones.add(phone)
+        elif lead.get("website") and company:
+            if company in seen_companies:
+                continue
+            seen_companies.add(company)
+        else:
+            continue
+        output.append(lead)
+    return output
 
-        print(f"  [TradeIndia] {kw} in {city}")
-        before = len(all_raw)
-        all_raw.extend(tradeindia.search(kw, city, max_results=25))
-        print(f"  [TradeIndia] +{len(all_raw)-before} raw")
-        time.sleep(1)
 
-        print(f"  [DuckDuckGo] {kw} in {city}")
-        before = len(all_raw)
-        all_raw.extend(duckduckgo.search(kw, city, max_results=20))
-        print(f"  [DuckDuckGo] +{len(all_raw)-before} raw")
-        time.sleep(1)
-
-        print(f"  [Bing] {kw} in {city}")
-        before = len(all_raw)
-        all_raw.extend(bing.search(kw, city, max_results=20))
-        print(f"  [Bing] +{len(all_raw)-before} raw")
-        time.sleep(1)
-
-        print(f"  [YellowPages] {kw} in {city}")
-        before = len(all_raw)
-        all_raw.extend(yellowpages.search(kw, city, max_results=20))
-        print(f"  [YellowPages] +{len(all_raw)-before} raw")
-        time.sleep(1)
-
-        print(f"  [IndiaMART] {kw} in {city}")
-        before = len(all_raw)
-        all_raw.extend(indiamart.search(kw, city, max_results=25))
-        print(f"  [IndiaMART] +{len(all_raw)-before} raw")
-        time.sleep(1)
-
-        print(f"  [JustDial] {kw} in {city}")
-        before = len(all_raw)
-        all_raw.extend(justdial.search(kw, city, max_results=20))
-        print(f"  [JustDial] +{len(all_raw)-before} raw")
-        time.sleep(1)
-
-        # Google Maps runs LAST — fills gaps only; duplicates already claimed by other sources get deduped out
-        print(f"  [Google Maps] {kw} in {city}")
-        before = len(all_raw)
-        all_raw.extend(googlemaps.search(kw, city, max_results=20))
-        print(f"  [Google Maps] +{len(all_raw)-before} raw")
-        time.sleep(1)
-
-        # Skip remaining keywords once target is reached
-        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
-            break
-
-    # Dedup: normalize phones + company names to catch duplicates across sources
-    seen_phones: set = set()
-    seen_keys: set = set()
-    deduped = []
-    for lead in all_raw:
-        raw_phone = str(lead.get("phone", "")).strip()
-        phone_norm = _norm_phone(raw_phone) if raw_phone else ""
-        # Overwrite with normalized form so downstream is consistent
-        if phone_norm:
-            lead["phone"] = phone_norm
-        company_key = _norm_company(str(lead.get("company", "")))
-        if phone_norm:
-            if phone_norm not in seen_phones:
-                seen_phones.add(phone_norm)
-                deduped.append(lead)
-        elif lead.get("website") and company_key and company_key not in seen_keys:
-            seen_keys.add(company_key)
-            deduped.append(lead)
-
-    # Enrich website-only leads — visit company site to resolve phone number
-    no_phone = [l for l in deduped if not l.get("phone") and l.get("website")]
-    if no_phone:
-        print(f"  [Enricher] Resolving phones for {min(len(no_phone), 60)} website-only leads...")
-        for lead in no_phone[:60]:
-            try:
-                enriched = enrich_website(lead["website"], max_pages=2)
-                p = enriched.get("phone", "")
-                if p and p not in seen_phones:
-                    lead["phone"] = p
-                    seen_phones.add(p)
-                if enriched.get("email") and not lead.get("email"):
-                    lead["email"] = enriched["email"]
-                if enriched.get("contact_person") and not lead.get("contact_person"):
-                    lead["contact_person"] = enriched["contact_person"]
-                    lead["designation"] = enriched.get("designation", "")
-            except Exception:
-                pass
-
-    actionable = [l for l in deduped if is_actionable_lead(l)]
-    # Sort by data completeness — best leads first
-    actionable.sort(key=_lead_score, reverse=True)
-    # Enforce source diversity: max 20 leads from any single source
-    from collections import Counter
-    source_counts: Counter = Counter()
-    top = []
-    for lead in actionable:
-        src = lead.get("source", "Unknown")
-        if source_counts[src] < 20:
-            top.append(lead)
-            source_counts[src] += 1
-        if len(top) >= target:
-            break
-
-    # Enrich top leads — fill email + contact person from company website (free)
-    needs_enrich = [
-        l for l in top
-        if l.get("website") and (not l.get("email") or not l.get("contact_person"))
+def _enrich(leads: list[dict], seen_phones: set[str], limit: int) -> None:
+    candidates = [
+        lead for lead in leads
+        if lead.get("website")
+        and (
+            not lead.get("phone")
+            or not lead.get("email")
+            or not lead.get("contact_person")
+        )
     ]
-    if needs_enrich:
-        print(f"  [Enricher] Enriching {min(len(needs_enrich), 20)} leads for email & contact...")
-        for lead in needs_enrich[:20]:
-            try:
-                enriched = enrich_website(lead["website"], max_pages=2)
-                if not lead.get("email") and enriched.get("email"):
-                    lead["email"] = enriched["email"]
-                if not lead.get("contact_person") and enriched.get("contact_person"):
-                    lead["contact_person"] = enriched["contact_person"]
-                    lead["designation"] = enriched.get("designation", lead.get("designation", ""))
-            except Exception:
-                pass
-
-    # Parallel web-search fallback for any leads still missing a contact name
-    resolve_contact_names(top, city)
-
-    return top
+    for lead in candidates[:limit]:
+        try:
+            enriched = enrich_website(lead["website"], max_pages=2)
+            phone = _norm_phone(enriched.get("phone", ""))
+            if phone and phone not in seen_phones and not lead.get("phone"):
+                lead["phone"] = phone
+                seen_phones.add(phone)
+            for field in ("email", "contact_person", "designation"):
+                if enriched.get(field) and not lead.get(field):
+                    lead[field] = enriched[field]
+        except Exception as exc:
+            print(f"  [Enricher] {lead.get('website')} skipped: {exc}")
 
 
-def format_lead_row(lead, product_name, city):
+def scrape_product(
+    keyword_list: list[str],
+    city: str,
+    target: int = LEADS_PER_PRODUCT,
+) -> tuple[list[dict], list[dict]]:
+    all_raw: list[dict] = []
+    source_runs: list[dict] = []
+    for keyword in keyword_list:
+        raw, telemetry = run_all_sources(keyword, city)
+        all_raw.extend(raw)
+        source_runs.append({"keyword": keyword, **telemetry})
+
+    deduped = _deduplicate(all_raw)
+    seen_phones = {
+        lead["phone"] for lead in deduped if lead.get("phone")
+    }
+    _enrich(deduped, seen_phones, limit=60)
+
+    actionable = [lead for lead in deduped if is_actionable_lead(lead)]
+    actionable.sort(key=_lead_score, reverse=True)
+
+    buckets: dict[str, list[dict]] = {}
+    for lead in actionable:
+        source = lead.get("source", "Unknown")
+        bucket = buckets.setdefault(source, [])
+        if len(bucket) < SOURCE_LEAD_CAP:
+            bucket.append(lead)
+
+    # Round-robin selection gives every productive source a fair chance while
+    # preserving quality order within each source.
+    selected: list[dict] = []
+    source_names = list(buckets)
+    offset = 0
+    while len(selected) < target:
+        added_this_round = False
+        for source in source_names:
+            bucket = buckets[source]
+            if offset < len(bucket):
+                selected.append(bucket[offset])
+                added_this_round = True
+                if len(selected) >= target:
+                    break
+        if not added_this_round:
+            break
+        offset += 1
+
+    _enrich(selected, seen_phones, limit=20)
+    try:
+        resolve_contact_names(selected, city)
+    except Exception as exc:
+        print(f"  [Contact resolver] skipped: {exc}")
+    return selected, source_runs
+
+
+def format_lead_row(
+    lead: dict,
+    vertical: str,
+    product: str,
+    city: str,
+) -> dict:
     return {
         "Date": str(date.today()),
         "City": city,
-        "Product": product_name,
+        "Vertical": vertical,
+        "Product": product,
+        "Search Keyword": lead.get("search_keyword", ""),
         "Company Name": lead.get("company", ""),
         "Contact Person": lead.get("contact_person", ""),
         "Phone": lead.get("phone", ""),
@@ -232,100 +273,147 @@ def format_lead_row(lead, product_name, city):
         "Designation": lead.get("designation", ""),
         "Source": lead.get("source", ""),
         "Website": lead.get("website", ""),
+        "Lead Score": _lead_score(lead),
     }
 
 
-def main():
+def main() -> int:
     try:
         state = load_state()
         city = get_today_city(state, TIER1_CITIES, TIER2_CITIES)
+        products = list(iter_products())
+        print(
+            f"\n=== Sunzone Lead Scraper | {date.today()} | "
+            f"{city} | Tier {state['tier']} ===\n"
+        )
 
-        print(f"\n=== Lead Scraper | {date.today()} | City: {city} | Tier {state['tier']} ===\n")
-
-        was_tier1_exhausted = state.get("exhausted_tier1", False)
-        was_tier2_exhausted = state.get("exhausted_tier2", False)
-
-        per_product_counts = {}
-        per_source_counts = {}
-        quality_stats = {"with_email": 0, "with_contact": 0, "with_website": 0, "with_phone": 0}
+        per_product_counts: dict[str, int] = {}
+        per_source_counts: dict[str, int] = {}
+        quality_stats = {
+            "with_email": 0,
+            "with_contact": 0,
+            "with_website": 0,
+            "with_phone": 0,
+        }
         total_added = 0
-        total_products = len(PRODUCTS)
+        source_failures: Counter = Counter()
+        started = time.time()
+        last_progress = started
+        vertical_tabs = list(dict.fromkeys(tab for _, tab, _, _ in products))
+        existing_phones = load_existing_phones(SHEET_ID, vertical_tabs)
+        print(
+            f"[SHEET] Loaded {len(existing_phones)} existing phone numbers "
+            "for global duplicate protection"
+        )
 
         try:
-            notify_scraper_started(city, total_products)
-        except Exception as e:
-            print(f"[NOTIFY WARN] Start notification failed: {e}")
+            notify_scraper_started(city, len(products))
+        except Exception as exc:
+            print(f"[NOTIFY WARN] Start notification failed: {exc}")
 
-        run_start = time.time()
-        last_progress_notify = run_start
-        PROGRESS_INTERVAL = 10 * 60  # 10 minutes
-
-        for idx, (product_name, product_cfg) in enumerate(PRODUCTS.items(), start=1):
-            print(f"\n[{product_name}] Scraping {city}...")
-            try:
-                leads = scrape_product(product_cfg["keywords"], city, LEADS_PER_PRODUCT)
-            except Exception as e:
-                print(f"  [ERROR] {product_name} scrape crashed: {e} — skipping, continuing with next product")
-                per_product_counts[product_name] = 0
-                time.sleep(2)
+        for index, (vertical, tab, product, fallback) in enumerate(products, 1):
+            print(f"\n[{vertical} / {product}] Scraping {city}...")
+            cursors = state.setdefault("keyword_cursors", {})
+            keywords, next_cursor = select_rotating_keywords(
+                vertical,
+                product,
+                fallback,
+                cursors,
+                KEYWORDS_PER_PRODUCT_PER_RUN,
+                city,
+            )
+            if not keywords:
+                print("  [WARN] No keywords configured; skipping")
+                per_product_counts[product] = 0
                 continue
 
-            print(f"  Actionable leads found: {len(leads)}")
+            try:
+                leads, runs = scrape_product(keywords, city, LEADS_PER_PRODUCT)
+                for run in runs:
+                    source_failures.update(run["failed"])
+            except Exception as exc:
+                print(f"  [ERROR] Product failed safely: {exc}")
+                per_product_counts[product] = 0
+                continue
 
-            if not leads:
-                per_product_counts[product_name] = 0
-            else:
-                try:
-                    rows = [format_lead_row(l, product_name, city) for l in leads]
-                    added = append_leads(SHEET_ID, product_cfg["tab"], SHEET_HEADERS, rows)
-                    per_product_counts[product_name] = added
-                    total_added += added
-                    print(f"  Added to sheet: {added}")
-                    for row in rows:
-                        src = row.get("Source", "Unknown")
-                        per_source_counts[src] = per_source_counts.get(src, 0) + 1
-                        if row.get("Phone"):          quality_stats["with_phone"] += 1
-                        if row.get("Email"):          quality_stats["with_email"] += 1
-                        if row.get("Contact Person"): quality_stats["with_contact"] += 1
-                        if row.get("Website"):        quality_stats["with_website"] += 1
-                except Exception as e:
-                    print(f"  [ERROR] Sheet write for {product_name} failed: {e} — continuing")
+            rows = [
+                format_lead_row(lead, vertical, product, city)
+                for lead in leads
+            ]
+            try:
+                written_rows = append_leads(
+                    SHEET_ID,
+                    tab,
+                    SHEET_HEADERS,
+                    rows,
+                    existing_phones=existing_phones,
+                )
+                added = len(written_rows)
+            except Exception as exc:
+                print(f"  [ERROR] Sheet write failed safely: {exc}")
+                written_rows = []
+                added = 0
 
-            # Send progress email if 15 minutes have elapsed since last notification
+            per_product_counts[product] = added
+            total_added += added
+            for row in written_rows:
+                source = row.get("Source", "Unknown")
+                per_source_counts[source] = per_source_counts.get(source, 0) + 1
+                quality_stats["with_phone"] += bool(row.get("Phone"))
+                quality_stats["with_email"] += bool(row.get("Email"))
+                quality_stats["with_contact"] += bool(row.get("Contact Person"))
+                quality_stats["with_website"] += bool(row.get("Website"))
+
+            cursors[cursor_key(vertical, product)] = next_cursor
+            save_state(state)
+            print(
+                f"  Keywords: {', '.join(keywords)} | "
+                f"actionable: {len(leads)} | added: {added}"
+            )
+
             now = time.time()
-            if now - last_progress_notify >= PROGRESS_INTERVAL and idx < total_products:
-                elapsed_min = int((now - run_start) / 60)
+            if now - last_progress >= 10 * 60 and index < len(products):
                 try:
-                    notify_progress_update(city, idx, total_products, total_added, elapsed_min)
-                    last_progress_notify = now
-                except Exception as e:
-                    print(f"[NOTIFY WARN] Progress notification failed: {e}")
-
-            time.sleep(2)
+                    notify_progress_update(
+                        city,
+                        index,
+                        len(products),
+                        total_added,
+                        int((now - started) / 60),
+                    )
+                    last_progress = now
+                except Exception as exc:
+                    print(f"[NOTIFY WARN] Progress notification failed: {exc}")
 
         advance_city(state, TIER1_CITIES, TIER2_CITIES)
         new_state = load_state()
-
-        if not was_tier1_exhausted and new_state.get("exhausted_tier1"):
-            print("\n[NOTIFY] Tier 1 exhausted — sending email")
+        if new_state.get("last_transition") == "tier1_to_tier2":
             try:
                 notify_tier1_exhausted()
-            except Exception as e:
-                print(f"[NOTIFY WARN] Tier 1 alert skipped: {e}")
-
-        if not was_tier2_exhausted and new_state.get("exhausted_tier2"):
-            print("\n[NOTIFY] Tier 2 exhausted — sending email")
+            except Exception as exc:
+                print(f"[NOTIFY WARN] Tier 1 alert failed: {exc}")
+        if new_state.get("last_transition") == "tier2_to_tier1":
             try:
                 notify_tier2_exhausted()
-            except Exception as e:
-                print(f"[NOTIFY WARN] Tier 2 alert skipped: {e}")
+            except Exception as exc:
+                print(f"[NOTIFY WARN] Tier 2 alert failed: {exc}")
 
-        run_duration_min = int((time.time() - run_start) / 60)
-        notify_daily_summary(city, total_added, per_product_counts, per_source_counts, quality_stats, run_duration_min)
+        duration = int((time.time() - started) / 60)
+        try:
+            notify_daily_summary(
+                city,
+                total_added,
+                per_product_counts,
+                per_source_counts,
+                quality_stats,
+                duration,
+                dict(source_failures),
+            )
+        except Exception as exc:
+            print(f"[NOTIFY WARN] Summary notification failed: {exc}")
 
-        print(f"\n=== Done. Total leads added today: {total_added} ===\n")
-        # A completed run with no new leads is still successful; duplicates or
-        # temporarily empty search results should not fail the scheduled job.
+        print(f"\nSource failures (isolated): {dict(source_failures)}")
+        print(f"=== Done. New unique leads: {total_added} ===\n")
         return 0
     finally:
         scraper_browser.close()

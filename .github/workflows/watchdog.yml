@@ -9,6 +9,10 @@ permissions:
   contents: read
   actions: write
 
+concurrency:
+  group: sunzone-watchdog
+  cancel-in-progress: true
+
 jobs:
   watchdog:
     runs-on: ubuntu-latest

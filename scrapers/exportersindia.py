@@ -24,7 +24,7 @@ def search(keyword: str, city: str, max_results: int = 20) -> list:
     leads = []
     seen_phones = set()
 
-    page = get_page()
+    page = get_page("ExportersIndia")
 
     # Try two URL variants
     urls = [

@@ -32,7 +32,7 @@ def search(keyword: str, city: str, max_results: int = 20) -> list:
         f"?keyword={query}&cntry=india&city={city_enc}"
     )
 
-    page = get_page()
+    page = get_page("TradeIndia")
     try:
         page.goto(url, timeout=30000, wait_until="domcontentloaded")
         page.wait_for_timeout(3000)

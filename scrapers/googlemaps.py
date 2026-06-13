@@ -4,9 +4,7 @@ Uses Playwright to search Google Maps for businesses matching keyword + city.
 Returns company name, phone, website. Email/contact filled by enricher.
 """
 import re
-import time
 from scrapers.browser import get_page
-from enricher import enrich_website
 
 PHONE_DIGITS_RE = re.compile(r"\d")
 
@@ -25,7 +23,7 @@ def search(keyword: str, city: str, max_results: int = 40) -> list:
     query = f"{keyword} {city} india"
     url = f"https://www.google.com/maps/search/{query.replace(' ', '+')}"
 
-    page = get_page()
+    page = get_page("Google Maps")
     try:
         loaded = False
         last_error = None
@@ -106,31 +104,17 @@ def search(keyword: str, city: str, max_results: int = 40) -> list:
                 if phone:
                     seen_phones.add(phone)
 
-                # Enrich from website
-                email = ""
-                contact_person = ""
-                designation = ""
-                if website:
-                    enriched = enrich_website(website)
-                    email = enriched.get("email", "")
-                    if not phone:
-                        phone = enriched.get("phone", "")
-                    contact_person = enriched.get("contact_person", "")
-                    designation = enriched.get("designation", "")
-
                 leads.append(
                     {
                         "company": company,
-                        "contact_person": contact_person,
+                        "contact_person": "",
                         "phone": phone,
-                        "email": email,
-                        "designation": designation,
+                        "email": "",
+                        "designation": "",
                         "website": website,
                         "source": "Google Maps",
                     }
                 )
-
-                time.sleep(0.3)
 
             except Exception:
                 continue

@@ -18,13 +18,12 @@ def print_lead(i, lead, source):
     print(f"    Website    : {lead.get('website', '')}")
 
 
-print(f"\n{'='*60}")
-print(f"  LEAD SCRAPER TEST RUN")
-print(f"  Keyword : {KEYWORD}")
-print(f"  City    : {CITY}")
-print(f"{'='*60}")
-
-try:
+def main():
+    print(f"\n{'='*60}")
+    print(f"  LEAD SCRAPER TEST RUN")
+    print(f"  Keyword : {KEYWORD}")
+    print(f"  City    : {CITY}")
+    print(f"{'='*60}")
     print("\n[1/2] Searching Google Maps...")
     maps_leads = googlemaps.search(KEYWORD, CITY, max_results=5)
     print(f"  Results: {len(maps_leads)}")
@@ -53,5 +52,10 @@ try:
     print(f"  Sulekha     : {len(sulekha_leads)}")
     print(f"  Total       : {len(maps_leads) + len(sulekha_leads)}")
     print(f"{'='*60}\n")
-finally:
-    browser.close()
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    finally:
+        browser.close()
