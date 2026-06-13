@@ -167,7 +167,7 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
             profile_link = card.query_selector(".business .name a[href*='/profile/']")
             profile_url = profile_link.get_attribute("href") if profile_link else ""
 
-            if not phone and not website:
+            if not phone:
                 continue
             if phone and phone in seen_phones:
                 continue

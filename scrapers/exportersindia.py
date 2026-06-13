@@ -99,7 +99,7 @@ def search(keyword: str, city: str, max_results: int = 20) -> list:
                             phone = candidate
                             break
 
-            if not phone and not website:
+            if not phone:
                 continue
             if phone and phone in seen_phones:
                 continue

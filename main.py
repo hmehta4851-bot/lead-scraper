@@ -3,7 +3,7 @@ import sys
 import time
 from datetime import date
 
-from config import PRODUCTS, SHEET_ID, SHEET_HEADERS, LEADS_PER_PRODUCT, TIER1_CITIES, TIER2_CITIES
+from config import PRODUCTS, SHEET_ID, SHEET_HEADERS, LEADS_PER_PRODUCT, TIER1_CITIES, TIER2_CITIES, COMPETITOR_BRANDS
 from state import load_state, get_today_city, advance_city
 from sheets import append_leads
 from notifier import (
@@ -19,19 +19,31 @@ from enricher import enrich_website, resolve_contact_names
 
 _OWN_BRAND_RE = re.compile(r"\bsunzone\b", re.I)
 
+# Competitor pattern built from config list — exact substring match on lowercased company name
+_COMPETITOR_RE = re.compile(
+    "|".join(re.escape(c) for c in COMPETITOR_BRANDS),
+    re.I,
+)
+
 
 def is_own_brand(lead) -> bool:
-    """True if lead is Sunzone itself — never target own company."""
     company = str(lead.get("company", ""))
     return bool(_OWN_BRAND_RE.search(company))
 
 
+def is_competitor(lead) -> bool:
+    company = str(lead.get("company", "")).lower()
+    return bool(_COMPETITOR_RE.search(company))
+
+
 def is_actionable_lead(lead):
-    """A company with a callable phone number is usable by the sales team."""
+    """Phone-bearing lead that is neither own brand nor a known competitor."""
     required = ["company", "phone"]
     if not all(str(lead.get(f, "")).strip() for f in required):
         return False
     if is_own_brand(lead):
+        return False
+    if is_competitor(lead):
         return False
     return True
 
