@@ -1,4 +1,4 @@
-name: Clear Sheet (One-Time Reset)
+name: Sunzone Prospect Flow - Protected Sheet Reset
 
 on:
   workflow_dispatch:   # manual trigger only

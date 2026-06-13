@@ -1,8 +1,12 @@
-name: Watchdog — Auto-heal if daily run missed
+name: Sunzone Prospect Flow - Self-Healing Watchdog
 
 on:
   schedule:
-    - cron: "30 5 * * 1-6"  # 11:00 AM IST Mon–Sat (3h after main cron)
+    - cron: "30 5 * * 1-6"  # 11:00 AM IST Mon-Sat
+    - cron: "30 9 * * 1-6"  # 3:00 PM IST Mon-Sat
+  workflow_run:
+    workflows: ["Sunzone Prospect Flow - Daily Collection"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -15,41 +19,65 @@ concurrency:
 
 jobs:
   watchdog:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion != 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      NOTIFY_EMAIL: "hmehta4851@gmail.com"
 
     steps:
-      - name: Check if today's scraper ran successfully
+      - name: Check today's Sunzone Prospect Flow health
         id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TODAY=$(date -u +%Y-%m-%d)
-          echo "Checking for successful Daily Lead Scraper run on $TODAY..."
+          echo "Checking Sunzone Prospect Flow runs on $TODAY..."
 
           # Get most recent daily scraper run
-          RESULT=$(gh run list \
+          RUNS=$(gh run list \
             --repo ${{ github.repository }} \
             --workflow daily.yml \
-            --limit 5 \
+            --limit 10 \
             --json databaseId,status,conclusion,createdAt \
-            --jq "[.[] | select(.createdAt | startswith(\"$TODAY\"))] | first")
+            --jq "[.[] | select(.createdAt | startswith(\"$TODAY\"))]")
 
-          echo "Latest run today: $RESULT"
+          echo "Runs today: $RUNS"
 
-          STATUS=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status','none') if d else 'none')" 2>/dev/null || echo "none")
-          CONCLUSION=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('conclusion','none') if d else 'none')" 2>/dev/null || echo "none")
+          read -r STATUS CONCLUSION ATTEMPTS <<< "$(echo "$RUNS" | python3 -c '
+          import json, sys
+          runs = json.load(sys.stdin)
+          if not isinstance(runs, list):
+              raise SystemExit("GitHub run response was not a list")
+          latest = runs[0] if runs else {}
+          print(
+              latest.get("status", "none"),
+              latest.get("conclusion") or "none",
+              len(runs),
+          )
+          ')"
 
-          echo "Status: $STATUS | Conclusion: $CONCLUSION"
+          case "$ATTEMPTS" in
+            ''|*[!0-9]*) echo "Invalid attempt count"; exit 1 ;;
+          esac
+
+          echo "Status: $STATUS | Conclusion: $CONCLUSION | Attempts: $ATTEMPTS"
 
           if [ "$STATUS" = "completed" ] && [ "$CONCLUSION" = "success" ]; then
             echo "need_rerun=false" >> $GITHUB_OUTPUT
+            echo "recovery_exhausted=false" >> $GITHUB_OUTPUT
             echo "Run succeeded today — nothing to do."
           elif [ "$STATUS" = "in_progress" ] || [ "$STATUS" = "queued" ]; then
             echo "need_rerun=false" >> $GITHUB_OUTPUT
+            echo "recovery_exhausted=false" >> $GITHUB_OUTPUT
             echo "Run is still in progress — nothing to do."
+          elif [ "$ATTEMPTS" -ge 3 ]; then
+            echo "need_rerun=false" >> $GITHUB_OUTPUT
+            echo "recovery_exhausted=true" >> $GITHUB_OUTPUT
+            echo "Automatic recovery limit reached."
           else
             echo "need_rerun=true" >> $GITHUB_OUTPUT
+            echo "recovery_exhausted=false" >> $GITHUB_OUTPUT
             echo "No successful run found today — triggering auto-heal."
           fi
 
@@ -58,7 +86,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Triggering Daily Lead Scraper (watchdog auto-heal)..."
+          echo "Triggering Sunzone Prospect Flow (watchdog auto-heal)..."
           gh workflow run daily.yml --repo ${{ github.repository }}
           echo "Triggered successfully."
 
@@ -72,19 +100,45 @@ jobs:
           import smtplib, os
           from email.mime.text import MIMEText
           msg = MIMEText(
-              "WATCHDOG ALERT: The scheduled 8 AM scraper did not complete successfully.\n\n"
-              "Action taken: Watchdog has automatically re-triggered the scraper.\n\n"
+              "Sunzone Prospect Flow detected an incomplete collection run.\n\n"
+              "Action taken: the watchdog automatically started a recovery run.\n\n"
               "No action needed from you — the system is healing itself.\n\n"
               "Leads will appear in your Google Sheet once the re-triggered run completes.\n\n"
               "─────────────────────────────\n"
               "Sunzone Prospect Flow Automation\n"
               "Self-healing watchdog system"
           )
-          msg["Subject"] = "[Sunzone Watchdog] Auto-healed — scraper re-triggered automatically"
+          msg["Subject"] = "[Sunzone Prospect Flow] Automatic recovery run started"
           msg["From"] = os.environ["GMAIL_USER"]
-          msg["To"] = "hmehta4851@gmail.com"
+          msg["To"] = os.environ["NOTIFY_EMAIL"]
           with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
               s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
-              s.sendmail(os.environ["GMAIL_USER"], ["hmehta4851@gmail.com"], msg.as_string())
+              s.sendmail(os.environ["GMAIL_USER"], [os.environ["NOTIFY_EMAIL"]], msg.as_string())
           print("Watchdog alert sent.")
+          EOF
+
+      - name: Send recovery limit alert
+        if: github.event_name == 'workflow_run' && steps.check.outputs.recovery_exhausted == 'true'
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: |
+          python3 - <<'EOF'
+          import smtplib, os
+          from email.mime.text import MIMEText
+          msg = MIMEText(
+              "Sunzone Prospect Flow attempted automatic recovery three times today, "
+              "but no successful run was recorded.\n\n"
+              "The system stopped retrying to avoid duplicate or uncontrolled jobs. "
+              "Existing sheet data remains protected.\n\n"
+              "Technical review link:\n"
+              "https://github.com/hm0163983-sudo/lead-scraper/actions"
+          )
+          msg["Subject"] = "[Sunzone Prospect Flow] Automatic recovery limit reached"
+          msg["From"] = os.environ["GMAIL_USER"]
+          msg["To"] = os.environ["NOTIFY_EMAIL"]
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+              s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
+              s.sendmail(os.environ["GMAIL_USER"], [os.environ["NOTIFY_EMAIL"]], msg.as_string())
+          print("Recovery limit alert sent.")
           EOF

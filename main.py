@@ -1,4 +1,4 @@
-"""Autonomous, vertical-first lead collection for Sunzone Sports & Play."""
+"""Sunzone Prospect Flow: autonomous buyer prospect collection."""
 
 from __future__ import annotations
 
@@ -383,7 +383,7 @@ def main() -> int:
                 (tab, product, fallback)
             )
         print(
-            f"\n=== Sunzone Lead Scraper | {run_date} | "
+            f"\n=== Sunzone Prospect Flow | {run_date} | "
             f"{city} | National cycle {state['rotation_cycle']} ===\n"
         )
 

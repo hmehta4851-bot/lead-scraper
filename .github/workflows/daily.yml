@@ -1,4 +1,4 @@
-name: Daily Lead Scraper
+name: Sunzone Prospect Flow - Daily Collection
 
 on:
   schedule:
@@ -44,7 +44,7 @@ jobs:
           workload_identity_provider: "projects/505761337329/locations/global/workloadIdentityPools/github-actions/providers/github-actions"
           service_account: "lead-scraper@turnkey-pottery-499205-u2.iam.gserviceaccount.com"
 
-      - name: Run scraper
+      - name: Run Sunzone Prospect Flow
         id: run_scraper
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
@@ -62,7 +62,7 @@ jobs:
           fi
           set -e
           if [ "$status" -eq 2 ]; then
-            echo "City completed with verified lead shortfalls; see quota report."
+            echo "Town batch completed with verified lead shortfalls; see quota report."
             exit 0
           fi
           exit "$status"
@@ -78,12 +78,13 @@ jobs:
           import smtplib, os
           from email.mime.text import MIMEText
           msg = MIMEText(
-              "The lead scraper FAILED today and did not collect leads.\n\n"
-              "Please check GitHub Actions for details:\n"
+              "Sunzone Prospect Flow could not complete today's collection after its built-in retry.\n\n"
+              "The self-healing watchdog will retry automatically. No routine action is needed.\n\n"
+              "Technical details:\n"
               "https://github.com/hm0163983-sudo/lead-scraper/actions\n\n"
-              "You can manually re-trigger from the Actions tab."
+              "You only need to investigate if a later recovery email says all automatic attempts failed."
           )
-          msg["Subject"] = "[Lead Scraper] FAILED — manual re-run needed"
+          msg["Subject"] = "[Sunzone Prospect Flow] Recovery started automatically"
           msg["From"] = os.environ["GMAIL_USER"]
           msg["To"] = os.environ["NOTIFY_EMAIL"]
           with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:

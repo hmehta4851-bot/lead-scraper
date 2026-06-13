@@ -30,7 +30,7 @@ def send_notification(subject, body):
 
 def notify_tier1_exhausted():
     send_notification(
-        subject="[Lead Scraper] Tier 1 cities exhausted — moving to Tier 2",
+        subject="[Sunzone Prospect Flow] Tier 1 cities exhausted",
         body=(
             "All Tier 1 cities have been fully cycled through.\n\n"
             "The scraper is now moving to Tier 2 cities.\n\n"
@@ -44,7 +44,7 @@ def notify_tier1_exhausted():
 
 def notify_tier2_exhausted():
     send_notification(
-        subject="[Lead Scraper] Tier 2 cities exhausted — restarting cycle",
+        subject="[Sunzone Prospect Flow] National city rotation restarting",
         body=(
             "All Tier 1 and Tier 2 cities have been cycled through.\n\n"
             "The scraper is restarting from Tier 1 cities again.\n\n"
@@ -55,9 +55,9 @@ def notify_tier2_exhausted():
 
 def notify_scraper_started(city, total_verticals):
     send_notification(
-        subject=f"[Lead Scraper] STARTED — {city}",
+        subject=f"[Sunzone Prospect Flow] STARTED — {city}",
         body=(
-            f"Lead scraper has started.\n\n"
+            f"Sunzone Prospect Flow has started.\n\n"
             f"City: {city}\n"
             f"Verticals to complete: {total_verticals}\n"
             f"Minimum target: 50 qualified leads per vertical\n\n"
@@ -68,7 +68,7 @@ def notify_scraper_started(city, total_verticals):
 
 def notify_progress_update(city, completed, total, leads_so_far, elapsed_min):
     send_notification(
-        subject=f"[Lead Scraper] Progress — {city} ({completed}/{total} passes)",
+        subject=f"[Sunzone Prospect Flow] Progress — {city} ({completed}/{total} passes)",
         body=(
             f"Scraper is still running.\n\n"
             f"City: {city}\n"
