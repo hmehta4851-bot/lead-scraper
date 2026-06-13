@@ -46,7 +46,8 @@ jobs:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           NOTIFY_EMAIL: "hmehta4851@gmail.com"
-        run: python main.py
+        run: |
+          python main.py || (echo "First attempt failed — retrying in 60s..." && sleep 60 && python main.py)
 
       - name: Send failure alert
         if: failure() && steps.run_scraper.outcome == 'failure'

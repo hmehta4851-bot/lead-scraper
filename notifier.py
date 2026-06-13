@@ -79,15 +79,77 @@ def notify_progress_update(city, completed, total, leads_so_far, elapsed_min):
     )
 
 
-def notify_daily_summary(city, total_leads, per_product):
-    lines = [f"  {product}: {count} leads" for product, count in per_product.items()]
-    body = (
-        f"Daily lead scraping COMPLETE.\n\n"
-        f"City: {city}\n"
-        f"Total leads added to Google Sheet: {total_leads}\n\n"
-        f"Breakdown by product:\n" + "\n".join(lines)
-    )
+def notify_daily_summary(city, total_leads, per_product, per_source=None, quality=None, duration_min=None):
+    sep = "─" * 42
+
+    # Product breakdown
+    product_lines = []
+    for product, count in per_product.items():
+        bar = "█" * min(count // 5, 10)
+        product_lines.append(f"  {product:<30} {count:>3} leads  {bar}")
+
+    # Source breakdown
+    source_lines = []
+    if per_source:
+        for src, count in sorted(per_source.items(), key=lambda x: -x[1]):
+            bar = "█" * min(count // 5, 10)
+            source_lines.append(f"  {src:<20} {count:>4} leads  {bar}")
+
+    # Quality stats
+    quality_lines = []
+    if quality and total_leads > 0:
+        pct = lambda n: f"{n} ({int(n/total_leads*100)}%)"
+        quality_lines = [
+            f"  With phone number   : {pct(quality.get('with_phone', total_leads))}",
+            f"  With email          : {pct(quality.get('with_email', 0))}",
+            f"  With contact person : {pct(quality.get('with_contact', 0))}",
+            f"  With website        : {pct(quality.get('with_website', 0))}",
+        ]
+
+    duration_str = f"{duration_min} minutes" if duration_min else "—"
+
+    body = f"""
+╔══════════════════════════════════════════╗
+  SUNZONE PROSPECT FLOW — DAILY REPORT
+╚══════════════════════════════════════════╝
+
+  City           : {city}
+  Total Leads    : {total_leads}
+  Duration       : {duration_str}
+  Sheet          : https://docs.google.com/spreadsheets/d/1p48H_6PpWgYFyaAtPXijyeAlk1Tgq5kUUQORMBgG8eM
+
+{sep}
+  LEADS BY PRODUCT
+{sep}
+{chr(10).join(product_lines)}
+
+  TOTAL: {total_leads} leads across {len(per_product)} products
+
+{sep}
+  LEADS BY SOURCE
+{sep}
+{chr(10).join(source_lines) if source_lines else "  (source data unavailable)"}
+
+{sep}
+  DATA QUALITY
+{sep}
+{chr(10).join(quality_lines) if quality_lines else "  (quality data unavailable)"}
+
+{sep}
+  SOURCES USED (9 total)
+{sep}
+  1. Google Maps      6. DuckDuckGo
+  2. Sulekha          7. Bing
+  3. ExportersIndia   8. YellowPages India
+  4. IndiaMART        9. JustDial
+  5. TradeIndia
+
+{sep}
+Sunzone Prospect Flow Automation
+Built for Sunzone Sports & Play
+""".strip()
+
     send_notification(
-        subject=f"[Lead Scraper] DONE — {city} — {total_leads} leads added",
+        subject=f"[Sunzone Prospect Flow] DONE — {city} — {total_leads} leads",
         body=body,
     )

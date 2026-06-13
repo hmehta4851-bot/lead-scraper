@@ -204,6 +204,8 @@ def main():
         was_tier2_exhausted = state.get("exhausted_tier2", False)
 
         per_product_counts = {}
+        per_source_counts = {}
+        quality_stats = {"with_email": 0, "with_contact": 0, "with_website": 0, "with_phone": 0}
         total_added = 0
         total_products = len(PRODUCTS)
 
@@ -229,6 +231,13 @@ def main():
                 per_product_counts[product_name] = added
                 total_added += added
                 print(f"  Added to sheet: {added}")
+                for row in rows:
+                    src = row.get("Source", "Unknown")
+                    per_source_counts[src] = per_source_counts.get(src, 0) + 1
+                    if row.get("Phone"):        quality_stats["with_phone"] += 1
+                    if row.get("Email"):        quality_stats["with_email"] += 1
+                    if row.get("Contact Person"): quality_stats["with_contact"] += 1
+                    if row.get("Website"):      quality_stats["with_website"] += 1
 
             # Send progress email if 15 minutes have elapsed since last notification
             now = time.time()
@@ -259,7 +268,8 @@ def main():
             except Exception as e:
                 print(f"[NOTIFY WARN] Tier 2 alert skipped: {e}")
 
-        notify_daily_summary(city, total_added, per_product_counts)
+        run_duration_min = int((time.time() - run_start) / 60)
+        notify_daily_summary(city, total_added, per_product_counts, per_source_counts, quality_stats, run_duration_min)
 
         print(f"\n=== Done. Total leads added today: {total_added} ===\n")
         # A completed run with no new leads is still successful; duplicates or
