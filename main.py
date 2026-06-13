@@ -10,19 +10,21 @@ from datetime import date
 from urllib.parse import urlparse
 
 from config import (
-    COMPETITOR_BRANDS,
     KEYWORDS_PER_PRODUCT_PER_RUN,
     LEADS_PER_PRODUCT,
+    MAX_LEADS_PER_SOURCE_PER_VERTICAL,
     SHEET_HEADERS,
     SHEET_ID,
     SOURCE_LEAD_CAP,
     SOURCE_RESULT_LIMIT,
+    TARGET_LEADS_PER_VERTICAL,
     TIER1_CITIES,
     TIER2_CITIES,
     iter_products,
 )
 from enricher import enrich_website, resolve_contact_names
-from keyword_library import cursor_key, select_rotating_keywords
+from keyword_library import add_buyer_intent, cursor_key, select_rotating_keywords
+from qualification import competitor_reasons, qualify_lead
 from notifier import (
     notify_daily_summary,
     notify_progress_update,
@@ -37,8 +39,10 @@ from scrapers import (
     googlemaps,
     indiamart,
     justdial,
+    openstreetmap,
     sulekha,
     tradeindia,
+    yahoo,
     yellowpages,
 )
 from scrapers import browser as scraper_browser
@@ -53,14 +57,15 @@ SOURCE_REGISTRY = (
     ("DuckDuckGo", duckduckgo.search),
     ("Bing", bing.search),
     ("YellowPages", yellowpages.search),
+    ("OpenStreetMap", openstreetmap.search),
+    ("Yahoo", yahoo.search),
     ("IndiaMART", indiamart.search),
     ("JustDial", justdial.search),
     ("Google Maps", googlemaps.search),
 )
 
-_OWN_BRAND_RE = re.compile(r"\bsunzone\b|\bsunzone\.in\b", re.I)
-_COMPETITOR_RE = re.compile(
-    "|".join(re.escape(brand) for brand in COMPETITOR_BRANDS),
+_OWN_BRAND_RE = re.compile(
+    r"\bsunzone\b|\bsunzone\.in\b|\bsunzonesport(?:s)?\b",
     re.I,
 )
 _COMPANY_NOISE_RE = re.compile(
@@ -90,7 +95,7 @@ def is_own_brand(lead: dict) -> bool:
 
 
 def is_competitor(lead: dict) -> bool:
-    return bool(_COMPETITOR_RE.search(_lead_identity_text(lead)))
+    return bool(competitor_reasons(lead))
 
 
 def is_actionable_lead(lead: dict) -> bool:
@@ -196,6 +201,8 @@ def _enrich(leads: list[dict], seen_phones: set[str], limit: int) -> None:
             for field in ("email", "contact_person", "designation"):
                 if enriched.get(field) and not lead.get(field):
                     lead[field] = enriched[field]
+            if enriched.get("website_text"):
+                lead["website_text"] = enriched["website_text"]
         except Exception as exc:
             print(f"  [Enricher] {lead.get('website')} skipped: {exc}")
 
@@ -203,7 +210,9 @@ def _enrich(leads: list[dict], seen_phones: set[str], limit: int) -> None:
 def scrape_product(
     keyword_list: list[str],
     city: str,
+    vertical: str,
     target: int = LEADS_PER_PRODUCT,
+    source_counts: Counter | None = None,
 ) -> tuple[list[dict], list[dict]]:
     all_raw: list[dict] = []
     source_runs: list[dict] = []
@@ -218,14 +227,37 @@ def scrape_product(
     }
     _enrich(deduped, seen_phones, limit=60)
 
-    actionable = [lead for lead in deduped if is_actionable_lead(lead)]
-    actionable.sort(key=_lead_score, reverse=True)
+    actionable = []
+    for lead in deduped:
+        if is_own_brand(lead):
+            continue
+        qualified, score, reason = qualify_lead(lead, vertical)
+        if not qualified:
+            continue
+        lead["lead_score"] = score
+        lead["qualification_reason"] = reason
+        actionable.append(lead)
+    actionable.sort(
+        key=lambda lead: (
+            int(lead.get("lead_score", 0)),
+            _lead_score(lead),
+        ),
+        reverse=True,
+    )
 
     buckets: dict[str, list[dict]] = {}
+    source_counts = source_counts or Counter()
     for lead in actionable:
         source = lead.get("source", "Unknown")
         bucket = buckets.setdefault(source, [])
-        if len(bucket) < SOURCE_LEAD_CAP:
+        available = min(
+            SOURCE_LEAD_CAP,
+            max(
+                0,
+                MAX_LEADS_PER_SOURCE_PER_VERTICAL - source_counts[source],
+            ),
+        )
+        if len(bucket) < available:
             bucket.append(lead)
 
     # Round-robin selection gives every productive source a fair chance while
@@ -273,8 +305,26 @@ def format_lead_row(
         "Designation": lead.get("designation", ""),
         "Source": lead.get("source", ""),
         "Website": lead.get("website", ""),
-        "Lead Score": _lead_score(lead),
+        "Lead Score": lead.get("lead_score", _lead_score(lead)),
+        "Qualification Reason": lead.get("qualification_reason", ""),
     }
+
+
+def apply_vertical_source_caps(
+    leads: list[dict],
+    source_counts: Counter,
+    cap: int = MAX_LEADS_PER_SOURCE_PER_VERTICAL,
+) -> list[dict]:
+    """Prevent any one source from dominating a vertical's daily output."""
+    accepted: list[dict] = []
+    provisional = Counter(source_counts)
+    for lead in leads:
+        source = str(lead.get("source") or "Unknown")
+        if provisional[source] >= cap:
+            continue
+        accepted.append(lead)
+        provisional[source] += 1
+    return accepted
 
 
 def main() -> int:
@@ -296,6 +346,10 @@ def main() -> int:
             "with_phone": 0,
         }
         total_added = 0
+        vertical_counts: Counter = Counter()
+        vertical_source_counts: dict[str, Counter] = {
+            vertical: Counter() for vertical, _, _, _ in products
+        }
         source_failures: Counter = Counter()
         started = time.time()
         last_progress = started
@@ -312,6 +366,12 @@ def main() -> int:
             print(f"[NOTIFY WARN] Start notification failed: {exc}")
 
         for index, (vertical, tab, product, fallback) in enumerate(products, 1):
+            if vertical_counts[vertical] >= TARGET_LEADS_PER_VERTICAL:
+                print(
+                    f"\n[{vertical}] Daily target reached "
+                    f"({vertical_counts[vertical]}); remaining products skipped"
+                )
+                continue
             print(f"\n[{vertical} / {product}] Scraping {city}...")
             cursors = state.setdefault("keyword_cursors", {})
             keywords, next_cursor = select_rotating_keywords(
@@ -322,13 +382,28 @@ def main() -> int:
                 KEYWORDS_PER_PRODUCT_PER_RUN,
                 city,
             )
+            buyer_cursors = state.setdefault("buyer_cursors", {})
+            product_cursor_key = cursor_key(vertical, product)
+            buyer_cursor = int(buyer_cursors.get(product_cursor_key, 0))
+            keywords = add_buyer_intent(
+                vertical,
+                keywords,
+                buyer_cursor,
+            )
             if not keywords:
                 print("  [WARN] No keywords configured; skipping")
                 per_product_counts[product] = 0
                 continue
 
             try:
-                leads, runs = scrape_product(keywords, city, LEADS_PER_PRODUCT)
+                remaining = TARGET_LEADS_PER_VERTICAL - vertical_counts[vertical]
+                leads, runs = scrape_product(
+                    keywords,
+                    city,
+                    vertical,
+                    min(LEADS_PER_PRODUCT, remaining),
+                    vertical_source_counts[vertical],
+                )
                 for run in runs:
                     source_failures.update(run["failed"])
             except Exception as exc:
@@ -336,6 +411,10 @@ def main() -> int:
                 per_product_counts[product] = 0
                 continue
 
+            leads = apply_vertical_source_caps(
+                leads,
+                vertical_source_counts[vertical],
+            )
             rows = [
                 format_lead_row(lead, vertical, product, city)
                 for lead in leads
@@ -356,15 +435,18 @@ def main() -> int:
 
             per_product_counts[product] = added
             total_added += added
+            vertical_counts[vertical] += added
             for row in written_rows:
                 source = row.get("Source", "Unknown")
                 per_source_counts[source] = per_source_counts.get(source, 0) + 1
+                vertical_source_counts[vertical][source] += 1
                 quality_stats["with_phone"] += bool(row.get("Phone"))
                 quality_stats["with_email"] += bool(row.get("Email"))
                 quality_stats["with_contact"] += bool(row.get("Contact Person"))
                 quality_stats["with_website"] += bool(row.get("Website"))
 
             cursors[cursor_key(vertical, product)] = next_cursor
+            buyer_cursors[product_cursor_key] = buyer_cursor + len(keywords)
             save_state(state)
             print(
                 f"  Keywords: {', '.join(keywords)} | "

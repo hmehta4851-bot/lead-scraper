@@ -163,7 +163,13 @@ def _extract_contact_from_page(soup):
 
 def enrich_website(url, max_pages: int = 5):
     """Returns dict with email, phone, contact_person, designation (all may be empty)."""
-    result = {"email": "", "phone": "", "contact_person": "", "designation": ""}
+    result = {
+        "email": "",
+        "phone": "",
+        "contact_person": "",
+        "designation": "",
+        "website_text": "",
+    }
 
     if not url or not url.startswith("http"):
         return result
@@ -183,6 +189,8 @@ def enrich_website(url, max_pages: int = 5):
             continue
         soup = BeautifulSoup(html, "html.parser")
         text = soup.get_text(" ", strip=True)
+        if not result["website_text"]:
+            result["website_text"] = text[:12000]
 
         # mailto: links are the most reliable email source — prioritize them
         for a in soup.find_all("a", href=re.compile(r"^mailto:", re.I)):

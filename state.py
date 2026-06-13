@@ -9,6 +9,7 @@ DEFAULT_STATE = {
     "exhausted_tier1": False,
     "exhausted_tier2": False,
     "keyword_cursors": {},
+    "buyer_cursors": {},
     "last_transition": "",
 }
 

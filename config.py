@@ -3,10 +3,12 @@
 SHEET_ID = "1p48H_6PpWgYFyaAtPXijyeAlk1Tgq5kUUQORMBgG8eM"
 NOTIFY_EMAIL = "hmehta4851@gmail.com"
 
-LEADS_PER_PRODUCT = 50
-KEYWORDS_PER_PRODUCT_PER_RUN = 1
+LEADS_PER_PRODUCT = 30
+TARGET_LEADS_PER_VERTICAL = 50
+KEYWORDS_PER_PRODUCT_PER_RUN = 2
 SOURCE_RESULT_LIMIT = 20
 SOURCE_LEAD_CAP = 20
+MAX_LEADS_PER_SOURCE_PER_VERTICAL = 10
 
 TIER1_CITIES = [
     "Mumbai", "Delhi", "Bangalore", "Chennai",
@@ -30,7 +32,77 @@ COMPETITOR_BRANDS = [
     "shaw sports turf", "sprinturf", "sporturf", "greenfield",
     "mafatlal", "sportmaster", "laykold", "plexipave",
     "unidus", "tapas acoustics", "tap acoustics",
+    "apex sport surfaces", "elite sports and infrastructure",
+    "sports infra", "sports infrastructure india",
+    "mondo", "sportgroup", "poly turf", "cc grass",
+    "green field", "pacecourt", "sport court india", "sport court",
+    "gallant sports", "forevergreen", "forever green", "zemax",
+    "ecoturf", "stardust sports", "renouf",
 ]
+
+SUPPLIER_SIGNALS = [
+    "manufacturer", "supplier", "exporter", "distributor", "dealer",
+    "installer", "installation company", "flooring contractor",
+    "sports flooring", "sport flooring", "sports surface",
+    "synthetic surface", "artificial grass supplier", "turf supplier",
+    "turf installer", "court construction", "turnkey sports contractor",
+    "sports infrastructure", "epdm flooring", "rubber flooring supplier",
+    "sports flooring company", "flooring solutions provider",
+    "turnkey sports solutions",
+]
+
+SUPPLIER_CONTEXT_SIGNALS = [
+    "we manufacture", "we are manufacturer", "leading manufacturer",
+    "we supply", "we are supplier", "leading supplier",
+    "our product range", "request a dealer quote",
+]
+
+VERTICAL_BUYER_SIGNALS = {
+    "Playful": [
+        "school", "preschool", "play school", "daycare", "nursery",
+        "kindergarten", "theme park", "amusement park", "resort", "hotel",
+        "housing society", "apartment", "township", "developer", "builder",
+        "architect", "landscape architect", "municipal", "public park",
+        "mall", "children hospital",
+    ],
+    "Graceful": [
+        "football academy", "cricket academy", "hockey academy",
+        "tennis academy", "padel club", "sports academy", "sports club",
+        "school", "college", "university", "stadium", "sports complex",
+        "resort", "hotel", "housing society", "township", "developer",
+        "builder", "architect", "municipal",
+    ],
+    "Powerful": [
+        "gym", "fitness", "crossfit", "health club", "wellness",
+        "hotel", "resort", "housing society", "apartment", "corporate",
+        "physiotherapy", "rehabilitation", "sports academy",
+    ],
+    "Joyful": [
+        "badminton academy", "badminton club", "sports academy",
+        "sports club", "school", "college", "university", "sports complex",
+        "indoor stadium", "hotel", "resort",
+    ],
+    "Acryplay": [
+        "basketball academy", "tennis academy", "pickleball club",
+        "sports academy", "sports club", "school", "college", "university",
+        "sports complex", "developer", "builder", "architect", "municipal",
+    ],
+    "Track & Field": [
+        "athletics academy", "school", "college", "university", "stadium",
+        "sports complex", "sports authority", "municipal", "government",
+        "defence", "police academy",
+    ],
+    "Sports Equipment": [
+        "school", "college", "university", "sports academy", "sports club",
+        "sports complex", "hotel", "resort", "government", "municipal",
+        "corporate", "housing society",
+    ],
+    "Woodplay": [
+        "basketball academy", "badminton academy", "sports academy",
+        "school", "college", "university", "indoor stadium",
+        "sports complex", "hotel", "resort", "architect", "developer",
+    ],
+}
 
 # These are the eight commercial verticals used by Sunzone's workbook and
 # website structure. Each vertical has one Google Sheet tab; Product remains a
@@ -153,7 +225,7 @@ VERTICALS = {
 SHEET_HEADERS = [
     "Date", "City", "Vertical", "Product", "Search Keyword",
     "Company Name", "Contact Person", "Phone", "Email", "Designation",
-    "Source", "Website", "Lead Score",
+    "Source", "Website", "Lead Score", "Qualification Reason",
 ]
 
 

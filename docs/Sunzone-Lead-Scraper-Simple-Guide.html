@@ -132,12 +132,12 @@
       <div class="stat"><strong>8</strong>sales verticals</div>
       <div class="stat"><strong>18</strong>product groups</div>
       <div class="stat"><strong>29,373</strong>unique keywords</div>
-      <div class="stat"><strong>9</strong>sources attempted</div>
+      <div class="stat"><strong>11</strong>free sources attempted</div>
     </div>
     <div class="callout good">
       <strong>Current status:</strong> rebuilt, independently reviewed by
-      Codex and Claude Code, tested locally, pushed to GitHub, old lead tabs
-      archived and cleared, and a fresh production run launched.
+      Codex and Claude Code, with buyer-only qualification, competitor blocking,
+      source diversity controls and automatic sheet cleanup.
     </div>
     <p class="date">Prepared on 13 June 2026</p>
   </section>
@@ -152,14 +152,15 @@
   <div class="flow">
     <div>Choose city<br><span class="small">Mumbai, Delhi, etc.</span></div>
     <div>Choose product<br><span class="small">18 groups</span></div>
-    <div>Search sources<br><span class="small">9 attempts</span></div>
+    <div>Search sources<br><span class="small">11 free attempts</span></div>
     <div>Clean &amp; check<br><span class="small">quality controls</span></div>
     <div>Save lead<br><span class="small">Google Sheet + email</span></div>
   </div>
   <div class="callout">
     <strong>Important:</strong> this is a prospect-finding system. It helps the
-    sales team find and organize possible buyers. A salesperson should still
-    verify the requirement before sending a quotation.
+    sales team find and organize high-confidence possible buyers. It does not
+    require manual data cleaning; the salesperson confirms the current purchase
+    requirement during the normal sales call.
   </div>
 
   <h2>2. Product Organization</h2>
@@ -191,7 +192,7 @@
     <li>All 18 product groups from the workbook are included.</li>
     <li>Words containing <strong>[city]</strong> are automatically changed to the current city.</li>
     <li>If the library file is temporarily unavailable, safe backup keywords are used.</li>
-    <li>One keyword per product is used in each run to keep runtime controlled.</li>
+    <li>Two rotating product keywords are paired with rotating buyer types in each run.</li>
   </ul>
   <div class="callout warn">
     The full 29,373-keyword library is preserved, but it is intentionally not
@@ -211,6 +212,8 @@
     <tr><td>DuckDuckGo</td><td>Finds independent websites outside directories.</td></tr>
     <tr><td>Bing</td><td>Adds broader web coverage.</td></tr>
     <tr><td>YellowPages</td><td>Local directory listings.</td></tr>
+    <tr><td>OpenStreetMap</td><td>Free public venue data for gyms, schools, sports centres, hotels and other buyers.</td></tr>
+    <tr><td>Yahoo</td><td>Adds independent web results from another search index.</td></tr>
     <tr><td>IndiaMART</td><td>Attempted, but phone numbers are often hidden unless logged in.</td></tr>
     <tr><td>JustDial</td><td>Attempted, but automated access is sometimes blocked.</td></tr>
   </table>
@@ -224,22 +227,24 @@
   <ul>
     <li><span class="check">Own-brand block:</span> Sunzone names, website and email domain are rejected.</li>
     <li><span class="check">Competitor block:</span> known competitor names and domains are rejected.</li>
+    <li><span class="check">Supplier block:</span> manufacturers, suppliers, dealers and installers are rejected.</li>
+    <li><span class="check">Buyer proof:</span> every accepted row must match the correct vertical's buyer types.</li>
     <li><span class="check">Phone check:</span> only leads with a usable Indian phone number reach the sheet.</li>
     <li><span class="check">Global duplicate check:</span> the phone is checked across every live vertical tab.</li>
-    <li><span class="check">Source balance:</span> results are selected in rounds so one large source cannot occupy every slot.</li>
+    <li><span class="check">Source balance:</span> results are selected in rounds and each source is capped at 10 leads per vertical per day.</li>
     <li><span class="check">Lead score:</span> phone, email, contact name, designation and website improve the score.</li>
   </ul>
   <div class="callout warn">
     No public-web scraper can promise that every business is a genuine buyer or
     that every competitor in India is known forever. The system blocks the
-    configured competitors and records the search source, but sales verification
-    remains necessary.
+    configured competitors and fails closed when buyer evidence is missing. It
+    may return fewer than 50 leads rather than add questionable records.
   </div>
 
   <h2>6. What Appears in Google Sheets</h2>
   <p>The live tabs are: Playful Leads, Graceful Leads, Powerful Leads, Joyful Leads, Acryplay Leads, Track &amp; Field Leads, Sports Equipment Leads and Woodplay Leads.</p>
   <p>Each saved row contains:</p>
-  <p><strong>Date, City, Vertical, Product, Search Keyword, Company Name, Contact Person, Phone, Email, Designation, Source, Website and Lead Score.</strong></p>
+  <p><strong>Date, City, Vertical, Product, Search Keyword, Company Name, Contact Person, Phone, Email, Designation, Source, Website, Lead Score and Qualification Reason.</strong></p>
   <p>
     Before the new structure was started, old product tabs were copied into
     timestamped archive tabs and then cleared. This preserves recoverability.
@@ -250,7 +255,7 @@
   <ol>
     <li>The main scraper is scheduled for <strong>8:00 AM India time, Monday to Saturday</strong>.</li>
     <li>It chooses the next city and a new keyword for each product.</li>
-    <li>It attempts all nine sources for each selected keyword.</li>
+    <li>It attempts all 11 free sources for each selected keyword.</li>
     <li>It writes only new phone numbers to the Google Sheet.</li>
     <li>It emails start, progress and completion information.</li>
     <li>A watchdog checks at <strong>11:00 AM India time</strong>.</li>
@@ -258,7 +263,7 @@
   </ol>
   <div class="callout good">
     Normal daily operation requires no action from the owner. Your practical
-    job is to review the Google Sheet and pass qualified leads to salespeople.
+    job is simply to give salespeople access to the Google Sheet.
   </div>
 
   <h2>8. Recovery and Safety</h2>
@@ -274,11 +279,11 @@
   <h2>9. Verification Completed</h2>
   <table>
     <tr><th>Verification</th><th>Result</th></tr>
-    <tr><td>Automated test suite</td><td>17 tests passed</td></tr>
+    <tr><td>Automated test suite</td><td>26 tests passed</td></tr>
     <tr><td>Keyword count and uniqueness</td><td>29,373 unique keywords verified</td></tr>
     <tr><td>Vertical/product routing</td><td>8 verticals and 18 products verified</td></tr>
     <tr><td>Source failure simulation</td><td>All remaining sources continued after a forced timeout</td></tr>
-    <tr><td>Live browser test</td><td>Google Maps returned 5 real results; Sulekha returned 0 for the test phrase</td></tr>
+    <tr><td>Live free-source tests</td><td>OpenStreetMap and Yahoo both returned real Mumbai business results</td></tr>
     <tr><td>Independent review</td><td>Claude Code final verdict: GO</td></tr>
     <tr><td>Live reset workflow</td><td>Completed successfully with archive-first behavior</td></tr>
   </table>
@@ -293,7 +298,8 @@
     The automation runs on GitHub Actions and writes through Google Sheets
     authentication already configured in the repository. GitHub and Google
     usage remain subject to the limits of the accounts attached to them. The
-    code itself does not add a paid AI API bill.
+    code itself does not add a paid AI API bill. All 11 lead sources used by the
+    scraper are accessed without paid source subscriptions or paid scraping APIs.
   </p>
 
   <h2>11. What You Should Watch</h2>

@@ -1,7 +1,7 @@
 """One-shot script: archive and clear legacy/current lead tabs."""
 from datetime import datetime
 
-from config import SHEET_ID, VERTICALS
+from config import SHEET_HEADERS, SHEET_ID, VERTICALS
 from sheets import get_client
 import gspread
 
@@ -39,6 +39,11 @@ def clear_all_tabs():
             continue
 
         all_rows = ws.get_all_values()
+        is_legacy = tab_name in LEGACY_TABS
+        if len(all_rows) <= 1 and is_legacy:
+            sh.del_worksheet(ws)
+            print(f"  [{tab_name}] Removed empty legacy tab")
+            continue
         if len(all_rows) <= 1:
             print(f"  [{tab_name}] Already empty")
             continue
@@ -56,8 +61,25 @@ def clear_all_tabs():
         row_count = len(all_rows)
         ws.delete_rows(2, row_count)
         print(f"  [{tab_name}] Cleared {row_count - 1} rows")
+        if is_legacy:
+            sh.del_worksheet(ws)
+            print(f"  [{tab_name}] Removed legacy tab after backup")
 
-    print("\nLive lead tabs archived and cleared. Ready for fresh start.")
+    for tab_name in current_tabs:
+        try:
+            ws = sh.worksheet(tab_name)
+        except gspread.exceptions.WorksheetNotFound:
+            ws = sh.add_worksheet(title=tab_name, rows=1000, cols=20)
+        ws.update("A1", [SHEET_HEADERS])
+
+    for ws in sh.worksheets():
+        if ws.title.startswith("Archive "):
+            try:
+                ws.hide()
+            except Exception:
+                pass
+
+    print("\nOnly 8 live vertical tabs remain visible; archives are hidden.")
 
 
 if __name__ == "__main__":

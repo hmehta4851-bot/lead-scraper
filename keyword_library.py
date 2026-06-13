@@ -6,6 +6,7 @@ import json
 import re
 from pathlib import Path
 
+from config import VERTICAL_BUYER_SIGNALS
 
 LIBRARY_PATH = Path(__file__).with_name("keyword_library.json")
 _LIBRARY_CACHE = None
@@ -60,3 +61,22 @@ def select_rotating_keywords(
         for offset in range(min(count, len(keywords)))
     ]
     return selected, (start + len(selected)) % len(keywords)
+
+
+def add_buyer_intent(
+    vertical: str,
+    keywords: list[str],
+    cursor: int = 0,
+) -> list[str]:
+    """Pair product terms with rotating end-buyer segments."""
+    signals = VERTICAL_BUYER_SIGNALS.get(vertical, [])
+    if not signals:
+        return keywords
+    targeted = []
+    for offset, keyword in enumerate(keywords):
+        signal = signals[(cursor + offset) % len(signals)]
+        if signal.casefold() in keyword.casefold():
+            targeted.append(keyword)
+        else:
+            targeted.append(f"{keyword} {signal}")
+    return targeted
