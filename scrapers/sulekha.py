@@ -83,36 +83,66 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
         f"https://www.sulekha.com/{kw_slug}s/{city_slug}",
     ]
 
+    # Selectors tried in order — Sulekha periodically renames CSS classes
+    _CARD_SELECTORS = [
+        ".sk-card",
+        ".listingCard",
+        "article.listing",
+        ".searchResultsInfo li",
+        ".listing-item",
+        "[class*='card'][class*='listing']",
+        "[class*='listingCard']",
+        "[class*='sk-card']",
+        "li[class*='result']",
+    ]
+
     page = get_page()
     working_url = None
+    cards = []
 
     for url in candidate_urls:
         try:
             page.goto(url, timeout=30000, wait_until="commit")
             page.wait_for_timeout(3000)
-            cards = page.query_selector_all(".sk-card")
-            real_cards = [c for c in cards if len(c.inner_text().strip()) > 20]
-            if real_cards:
-                working_url = url
+            for sel in _CARD_SELECTORS:
+                found = page.query_selector_all(sel)
+                real = [c for c in found if len(c.inner_text().strip()) > 20]
+                if real:
+                    cards = real
+                    working_url = url
+                    break
+            if working_url:
                 break
         except Exception:
             continue
 
-    if not working_url:
+    if not working_url or not cards:
+        print(f"  [Sulekha] No listings found — {kw_slug}/{city_slug}")
         return leads
-
-    cards = page.query_selector_all(".sk-card")
-    cards = [c for c in cards if len(c.inner_text().strip()) > 20]
 
     seen_phones = set()
 
     for card in cards[:max_results]:
         try:
-            # Company name
-            name_el = card.query_selector(".business .name a h3")
-            if not name_el:
-                name_el = card.query_selector(".business .name a")
-            company = name_el.inner_text().strip() if name_el else ""
+            # Company name — try multiple selectors, fall back to first non-empty line
+            company = ""
+            for name_sel in [
+                ".business .name a h3", ".business .name a", ".business-name a",
+                "h2 a", "h3 a", "h2", "h3", "[class*='name'] a", "[class*='name']",
+            ]:
+                el = card.query_selector(name_sel)
+                if el:
+                    t = el.inner_text().strip()
+                    if t:
+                        company = t
+                        break
+            if not company:
+                # last resort: first non-empty line of card text
+                for ln in card.inner_text().splitlines():
+                    ln = ln.strip()
+                    if len(ln) > 3:
+                        company = ln
+                        break
             if not company:
                 continue
 

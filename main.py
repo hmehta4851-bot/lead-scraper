@@ -10,8 +10,8 @@ from notifier import (
     notify_tier1_exhausted, notify_tier2_exhausted,
     notify_daily_summary, notify_scraper_started, notify_progress_update,
 )
-from scrapers import sulekha, googlemaps, indiamart, exportersindia
-from scrapers import tradeindia, duckduckgo, bing, yellowpages, justdial
+from scrapers import sulekha, googlemaps, exportersindia
+from scrapers import tradeindia, duckduckgo, bing, yellowpages
 from scrapers import browser as scraper_browser
 from enricher import enrich_website, resolve_contact_names
 
@@ -72,39 +72,45 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
     for kw in keyword_list:
         # Run all 9 sources for every keyword — early exit only after full keyword pass
         print(f"  [Google Maps] {kw} in {city}")
-        all_raw.extend(googlemaps.search(kw, city, max_results=40))
+        before = len(all_raw)
+        all_raw.extend(googlemaps.search(kw, city, max_results=60))
+        print(f"  [Google Maps] +{len(all_raw)-before} raw")
         time.sleep(1)
 
         print(f"  [Sulekha] {kw} in {city}")
-        all_raw.extend(sulekha.search(kw, city, max_results=15))
+        before = len(all_raw)
+        all_raw.extend(sulekha.search(kw, city, max_results=20))
+        print(f"  [Sulekha] +{len(all_raw)-before} raw")
         time.sleep(1)
 
         print(f"  [ExportersIndia] {kw} in {city}")
-        all_raw.extend(exportersindia.search(kw, city, max_results=20))
-        time.sleep(1)
-
-        print(f"  [IndiaMART] {kw} in {city}")
-        all_raw.extend(indiamart.search(kw, city, max_results=25))
+        before = len(all_raw)
+        all_raw.extend(exportersindia.search(kw, city, max_results=25))
+        print(f"  [ExportersIndia] +{len(all_raw)-before} raw")
         time.sleep(1)
 
         print(f"  [TradeIndia] {kw} in {city}")
-        all_raw.extend(tradeindia.search(kw, city, max_results=20))
+        before = len(all_raw)
+        all_raw.extend(tradeindia.search(kw, city, max_results=25))
+        print(f"  [TradeIndia] +{len(all_raw)-before} raw")
         time.sleep(1)
 
         print(f"  [DuckDuckGo] {kw} in {city}")
-        all_raw.extend(duckduckgo.search(kw, city, max_results=15))
+        before = len(all_raw)
+        all_raw.extend(duckduckgo.search(kw, city, max_results=20))
+        print(f"  [DuckDuckGo] +{len(all_raw)-before} raw")
         time.sleep(1)
 
         print(f"  [Bing] {kw} in {city}")
-        all_raw.extend(bing.search(kw, city, max_results=15))
+        before = len(all_raw)
+        all_raw.extend(bing.search(kw, city, max_results=20))
+        print(f"  [Bing] +{len(all_raw)-before} raw")
         time.sleep(1)
 
         print(f"  [YellowPages] {kw} in {city}")
-        all_raw.extend(yellowpages.search(kw, city, max_results=15))
-        time.sleep(1)
-
-        print(f"  [JustDial] {kw} in {city}")
-        all_raw.extend(justdial.search(kw, city, max_results=20))
+        before = len(all_raw)
+        all_raw.extend(yellowpages.search(kw, city, max_results=20))
+        print(f"  [YellowPages] +{len(all_raw)-before} raw")
         time.sleep(1)
 
         # Skip remaining keywords once target is reached
@@ -133,8 +139,8 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
     # Enrich website-only leads — visit company site to resolve phone number
     no_phone = [l for l in deduped if not l.get("phone") and l.get("website")]
     if no_phone:
-        print(f"  [Enricher] Resolving phones for {min(len(no_phone), 15)} website-only leads...")
-        for lead in no_phone[:15]:
+        print(f"  [Enricher] Resolving phones for {min(len(no_phone), 40)} website-only leads...")
+        for lead in no_phone[:40]:
             try:
                 enriched = enrich_website(lead["website"], max_pages=2)
                 p = enriched.get("phone", "")
@@ -160,8 +166,8 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
         if l.get("website") and (not l.get("email") or not l.get("contact_person"))
     ]
     if needs_enrich:
-        print(f"  [Enricher] Enriching {min(len(needs_enrich), 10)} leads for email & contact...")
-        for lead in needs_enrich[:10]:
+        print(f"  [Enricher] Enriching {min(len(needs_enrich), 20)} leads for email & contact...")
+        for lead in needs_enrich[:20]:
             try:
                 enriched = enrich_website(lead["website"], max_pages=2)
                 if not lead.get("email") and enriched.get("email"):
