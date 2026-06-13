@@ -167,11 +167,12 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
             profile_link = card.query_selector(".business .name a[href*='/profile/']")
             profile_url = profile_link.get_attribute("href") if profile_link else ""
 
-            if not phone:
+            if not phone and not website:
                 continue
-            if phone in seen_phones:
+            if phone and phone in seen_phones:
                 continue
-            seen_phones.add(phone)
+            if phone:
+                seen_phones.add(phone)
 
             # Get email + contact from profile page
             enriched = {}

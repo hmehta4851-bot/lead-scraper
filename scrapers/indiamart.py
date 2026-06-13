@@ -86,17 +86,12 @@ def search(keyword: str, city: str, max_results: int = 25) -> list:
                     or ""
                 )
 
-                # Skip if masked
-                if MASK_RE.search(phone_raw):
+                masked = bool(MASK_RE.search(phone_raw))
+                phone = "" if masked else _clean_phone(phone_raw)
+                if phone and not re.match(r"[6-9]\d{9}", phone):
+                    phone = ""
+                if phone and phone in seen_phones:
                     continue
-
-                phone = _clean_phone(phone_raw)
-                if not phone or not re.match(r"[6-9]\d{9}", phone):
-                    continue
-                if phone in seen_phones:
-                    continue
-                seen_phones.add(phone)
-                unmasked_count += 1
 
                 email = (
                     item.get("email_id", "")
@@ -123,6 +118,14 @@ def search(keyword: str, city: str, max_results: int = 25) -> list:
                     or item.get("DESIGNATION", "")
                     or ""
                 ).strip()
+
+                # Skip if no phone AND no website (nothing to work with)
+                if not phone and not website:
+                    continue
+
+                if phone:
+                    seen_phones.add(phone)
+                    unmasked_count += 1
 
                 leads.append({
                     "company": company,

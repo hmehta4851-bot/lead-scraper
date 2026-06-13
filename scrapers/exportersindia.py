@@ -99,11 +99,12 @@ def search(keyword: str, city: str, max_results: int = 20) -> list:
                             phone = candidate
                             break
 
-            if not phone:
+            if not phone and not website:
                 continue
-            if phone in seen_phones:
+            if phone and phone in seen_phones:
                 continue
-            seen_phones.add(phone)
+            if phone:
+                seen_phones.add(phone)
 
             # Email
             email = ""

@@ -12,6 +12,7 @@ from notifier import (
 )
 from scrapers import sulekha, googlemaps, exportersindia
 from scrapers import tradeindia, duckduckgo, bing, yellowpages
+from scrapers import indiamart, justdial
 from scrapers import browser as scraper_browser
 from enricher import enrich_website, resolve_contact_names
 
@@ -73,7 +74,7 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
         # Run all 9 sources for every keyword — early exit only after full keyword pass
         print(f"  [Google Maps] {kw} in {city}")
         before = len(all_raw)
-        all_raw.extend(googlemaps.search(kw, city, max_results=60))
+        all_raw.extend(googlemaps.search(kw, city, max_results=20))
         print(f"  [Google Maps] +{len(all_raw)-before} raw")
         time.sleep(1)
 
@@ -111,6 +112,18 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
         before = len(all_raw)
         all_raw.extend(yellowpages.search(kw, city, max_results=20))
         print(f"  [YellowPages] +{len(all_raw)-before} raw")
+        time.sleep(1)
+
+        print(f"  [IndiaMART] {kw} in {city}")
+        before = len(all_raw)
+        all_raw.extend(indiamart.search(kw, city, max_results=25))
+        print(f"  [IndiaMART] +{len(all_raw)-before} raw")
+        time.sleep(1)
+
+        print(f"  [JustDial] {kw} in {city}")
+        before = len(all_raw)
+        all_raw.extend(justdial.search(kw, city, max_results=20))
+        print(f"  [JustDial] +{len(all_raw)-before} raw")
         time.sleep(1)
 
         # Skip remaining keywords once target is reached
