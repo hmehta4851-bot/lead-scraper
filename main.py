@@ -70,75 +70,44 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
     all_raw = []
 
     for kw in keyword_list:
-        # 1. Google Maps — primary (local businesses, all types)
+        # Run all 9 sources for every keyword — early exit only after full keyword pass
         print(f"  [Google Maps] {kw} in {city}")
-        results = googlemaps.search(kw, city, max_results=40)
-        all_raw.extend(results)
+        all_raw.extend(googlemaps.search(kw, city, max_results=40))
         time.sleep(1)
-        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
-            break
 
-        # 2. Sulekha — strong for service contractors
         print(f"  [Sulekha] {kw} in {city}")
-        results = sulekha.search(kw, city, max_results=15)
-        all_raw.extend(results)
+        all_raw.extend(sulekha.search(kw, city, max_results=15))
         time.sleep(1)
-        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
-            break
 
-        # 3. ExportersIndia — B2B suppliers and dealers
         print(f"  [ExportersIndia] {kw} in {city}")
-        results = exportersindia.search(kw, city, max_results=20)
-        all_raw.extend(results)
+        all_raw.extend(exportersindia.search(kw, city, max_results=20))
         time.sleep(1)
-        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
-            break
 
-        # 4. IndiaMART — unmasked phones only
         print(f"  [IndiaMART] {kw} in {city}")
-        results = indiamart.search(kw, city, max_results=25)
-        all_raw.extend(results)
+        all_raw.extend(indiamart.search(kw, city, max_results=25))
         time.sleep(1)
-        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
-            break
 
-        # 5. TradeIndia — additional B2B directory
         print(f"  [TradeIndia] {kw} in {city}")
-        results = tradeindia.search(kw, city, max_results=20)
-        all_raw.extend(results)
+        all_raw.extend(tradeindia.search(kw, city, max_results=20))
         time.sleep(1)
-        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
-            break
 
-        # 6. DuckDuckGo — web-wide organic search (finds businesses not on directories)
         print(f"  [DuckDuckGo] {kw} in {city}")
-        results = duckduckgo.search(kw, city, max_results=15)
-        all_raw.extend(results)
+        all_raw.extend(duckduckgo.search(kw, city, max_results=15))
         time.sleep(1)
-        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
-            break
 
-        # 7. Bing — different crawl index than DuckDuckGo
         print(f"  [Bing] {kw} in {city}")
-        results = bing.search(kw, city, max_results=15)
-        all_raw.extend(results)
+        all_raw.extend(bing.search(kw, city, max_results=15))
         time.sleep(1)
-        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
-            break
 
-        # 8. YellowPages India — SMB directory
         print(f"  [YellowPages] {kw} in {city}")
-        results = yellowpages.search(kw, city, max_results=15)
-        all_raw.extend(results)
+        all_raw.extend(yellowpages.search(kw, city, max_results=15))
         time.sleep(1)
-        if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
-            break
 
-        # 9. JustDial — India's largest local directory (graceful fallback if blocked)
         print(f"  [JustDial] {kw} in {city}")
-        results = justdial.search(kw, city, max_results=20)
-        all_raw.extend(results)
+        all_raw.extend(justdial.search(kw, city, max_results=20))
         time.sleep(1)
+
+        # Skip remaining keywords once target is reached
         if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
             break
 
