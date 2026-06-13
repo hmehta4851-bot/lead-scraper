@@ -53,15 +53,41 @@ def notify_tier2_exhausted():
     )
 
 
+def notify_scraper_started(city, total_products):
+    send_notification(
+        subject=f"[Lead Scraper] STARTED — {city}",
+        body=(
+            f"Lead scraper has started.\n\n"
+            f"City: {city}\n"
+            f"Products to scrape: {total_products}\n\n"
+            f"You will receive a progress update every 15 minutes and a final summary when done."
+        ),
+    )
+
+
+def notify_progress_update(city, completed, total, leads_so_far, elapsed_min):
+    send_notification(
+        subject=f"[Lead Scraper] Progress — {city} ({completed}/{total} products)",
+        body=(
+            f"Scraper is still running.\n\n"
+            f"City: {city}\n"
+            f"Products completed: {completed} of {total}\n"
+            f"Leads collected so far: {leads_so_far}\n"
+            f"Time elapsed: {elapsed_min} minutes\n\n"
+            f"Next update in 15 minutes (or final summary when done)."
+        ),
+    )
+
+
 def notify_daily_summary(city, total_leads, per_product):
     lines = [f"  {product}: {count} leads" for product, count in per_product.items()]
     body = (
-        f"Daily lead scraping complete.\n\n"
+        f"Daily lead scraping COMPLETE.\n\n"
         f"City: {city}\n"
-        f"Total leads added: {total_leads}\n\n"
-        f"Breakdown:\n" + "\n".join(lines)
+        f"Total leads added to Google Sheet: {total_leads}\n\n"
+        f"Breakdown by product:\n" + "\n".join(lines)
     )
     send_notification(
-        subject=f"[Lead Scraper] {city} — {total_leads} leads added",
+        subject=f"[Lead Scraper] DONE — {city} — {total_leads} leads added",
         body=body,
     )

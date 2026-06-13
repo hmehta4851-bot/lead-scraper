@@ -6,7 +6,10 @@ from datetime import date
 from config import PRODUCTS, SHEET_ID, SHEET_HEADERS, LEADS_PER_PRODUCT, TIER1_CITIES, TIER2_CITIES
 from state import load_state, get_today_city, advance_city
 from sheets import append_leads
-from notifier import notify_tier1_exhausted, notify_tier2_exhausted, notify_daily_summary
+from notifier import (
+    notify_tier1_exhausted, notify_tier2_exhausted,
+    notify_daily_summary, notify_scraper_started, notify_progress_update,
+)
 from scrapers import sulekha, googlemaps, indiamart, exportersindia
 from scrapers import tradeindia, duckduckgo, bing, yellowpages, justdial
 from scrapers import browser as scraper_browser
@@ -217,21 +220,40 @@ def main():
 
         per_product_counts = {}
         total_added = 0
+        total_products = len(PRODUCTS)
 
-        for product_name, product_cfg in PRODUCTS.items():
+        try:
+            notify_scraper_started(city, total_products)
+        except Exception as e:
+            print(f"[NOTIFY WARN] Start notification failed: {e}")
+
+        run_start = time.time()
+        last_progress_notify = run_start
+        PROGRESS_INTERVAL = 15 * 60  # 15 minutes
+
+        for idx, (product_name, product_cfg) in enumerate(PRODUCTS.items(), start=1):
             print(f"\n[{product_name}] Scraping {city}...")
             leads = scrape_product(product_cfg["keywords"], city, LEADS_PER_PRODUCT)
             print(f"  Actionable leads found: {len(leads)}")
 
             if not leads:
                 per_product_counts[product_name] = 0
-                continue
+            else:
+                rows = [format_lead_row(l, product_name, city) for l in leads]
+                added = append_leads(SHEET_ID, product_cfg["tab"], SHEET_HEADERS, rows)
+                per_product_counts[product_name] = added
+                total_added += added
+                print(f"  Added to sheet: {added}")
 
-            rows = [format_lead_row(l, product_name, city) for l in leads]
-            added = append_leads(SHEET_ID, product_cfg["tab"], SHEET_HEADERS, rows)
-            per_product_counts[product_name] = added
-            total_added += added
-            print(f"  Added to sheet: {added}")
+            # Send progress email if 15 minutes have elapsed since last notification
+            now = time.time()
+            if now - last_progress_notify >= PROGRESS_INTERVAL and idx < total_products:
+                elapsed_min = int((now - run_start) / 60)
+                try:
+                    notify_progress_update(city, idx, total_products, total_added, elapsed_min)
+                    last_progress_notify = now
+                except Exception as e:
+                    print(f"[NOTIFY WARN] Progress notification failed: {e}")
 
             time.sleep(2)
 
