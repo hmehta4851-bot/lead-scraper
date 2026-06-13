@@ -229,7 +229,7 @@ def main():
 
         run_start = time.time()
         last_progress_notify = run_start
-        PROGRESS_INTERVAL = 15 * 60  # 15 minutes
+        PROGRESS_INTERVAL = 10 * 60  # 10 minutes
 
         for idx, (product_name, product_cfg) in enumerate(PRODUCTS.items(), start=1):
             print(f"\n[{product_name}] Scraping {city}...")

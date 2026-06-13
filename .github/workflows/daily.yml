@@ -2,7 +2,7 @@ name: Daily Lead Scraper
 
 on:
   schedule:
-    - cron: "30 2 * * *"  # 8:00 AM IST (UTC+5:30)
+    - cron: "30 2 * * 1-6"  # 8:00 AM IST Mon–Sat (UTC+5:30, 0=Sun)
   workflow_dispatch:       # manual trigger button
 
 env:
