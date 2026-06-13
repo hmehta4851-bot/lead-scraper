@@ -3,7 +3,8 @@ import time
 import json
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, quote_plus
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 HEADERS = {
     "User-Agent": (
@@ -220,3 +221,81 @@ def enrich_website(url, max_pages: int = 5):
         result["phone"] = all_phones[0]
 
     return result
+
+
+# ── Parallel contact-name resolver ────────────────────────────────────────────
+
+_SEARCH_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/121.0.0.0 Safari/537.36"
+    ),
+    "Accept-Language": "en-IN,en;q=0.9",
+}
+
+
+def _name_from_ddg(query: str):
+    """Search DuckDuckGo HTML, extract first person name + designation from snippets."""
+    try:
+        url = f"https://html.duckduckgo.com/html/?q={quote_plus(query)}"
+        resp = requests.get(url, headers=_SEARCH_HEADERS, timeout=10, allow_redirects=True)
+        if resp.status_code != 200:
+            return "", ""
+        soup = BeautifulSoup(resp.text, "html.parser")
+        snippets = soup.select(".result__snippet, .result__body")
+        text = " ".join(s.get_text(" ", strip=True) for s in snippets[:6])
+        if text:
+            return _extract_contact_from_page(BeautifulSoup(f"<div>{text}</div>", "html.parser"))
+    except Exception:
+        pass
+    return "", ""
+
+
+def _resolve_one(lead: dict, city: str):
+    """Try to find a contact person name for a single lead via web search."""
+    company = lead.get("company", "").strip()
+    phone = lead.get("phone", "").strip()
+    if not company:
+        return
+
+    # Pass 1: phone number search — very specific, best signal
+    if phone:
+        name, desig = _name_from_ddg(f'"{phone}" owner director proprietor')
+        if name:
+            lead["contact_person"] = name
+            if desig and not lead.get("designation"):
+                lead["designation"] = desig
+            return
+
+    # Pass 2: company + city search
+    name, desig = _name_from_ddg(
+        f'"{company}" {city} owner director proprietor contact person'
+    )
+    if name:
+        lead["contact_person"] = name
+        if desig and not lead.get("designation"):
+            lead["designation"] = desig
+
+
+def resolve_contact_names(leads: list, city: str, max_workers: int = 6) -> list:
+    """
+    Parallel web-search fallback: fills contact_person for leads where
+    website enrichment found nothing. Mutates leads in-place, returns same list.
+    """
+    targets = [l for l in leads if not l.get("contact_person") and l.get("company")]
+    if not targets:
+        return leads
+
+    print(f"  [NameResolver] Searching names for {len(targets)} leads in parallel...")
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        futures = {pool.submit(_resolve_one, lead, city): lead for lead in targets}
+        for fut in as_completed(futures):
+            try:
+                fut.result()
+            except Exception:
+                pass
+
+    filled = sum(1 for l in targets if l.get("contact_person"))
+    print(f"  [NameResolver] Filled {filled}/{len(targets)} names")
+    return leads

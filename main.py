@@ -13,7 +13,7 @@ from notifier import (
 from scrapers import sulekha, googlemaps, indiamart, exportersindia
 from scrapers import tradeindia, duckduckgo, bing, yellowpages, justdial
 from scrapers import browser as scraper_browser
-from enricher import enrich_website
+from enricher import enrich_website, resolve_contact_names
 
 
 def is_actionable_lead(lead):
@@ -189,6 +189,9 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
                     lead["designation"] = enriched.get("designation", lead.get("designation", ""))
             except Exception:
                 pass
+
+    # Parallel web-search fallback for any leads still missing a contact name
+    resolve_contact_names(top, city)
 
     return top
 
