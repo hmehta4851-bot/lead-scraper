@@ -18,27 +18,11 @@ from enricher import enrich_website, resolve_contact_names
 
 _OWN_BRAND_RE = re.compile(r"\bsunzone\b", re.I)
 
-_SUPPLIER_WORDS = re.compile(
-    r"\b(manufacturer|manufacturing|supplier|supplies|supply|distributor|distribution|"
-    r"wholesale|wholesaler|exporter|export|importer|import|trader|trading|stockist|"
-    r"dealer|dealers|dealership)\b",
-    re.I,
-)
-
 
 def is_own_brand(lead) -> bool:
     """True if lead is Sunzone itself — never target own company."""
     company = str(lead.get("company", ""))
     return bool(_OWN_BRAND_RE.search(company))
-
-
-def is_supplier_lead(lead) -> bool:
-    """True if lead looks like a competitor supplier, not a buyer."""
-    company = str(lead.get("company", ""))
-    designation = str(lead.get("designation", ""))
-    description = str(lead.get("description", ""))
-    text = f"{company} {designation} {description}"
-    return bool(_SUPPLIER_WORDS.search(text))
 
 
 def is_actionable_lead(lead):
@@ -47,8 +31,6 @@ def is_actionable_lead(lead):
     if not all(str(lead.get(f, "")).strip() for f in required):
         return False
     if is_own_brand(lead):
-        return False
-    if is_supplier_lead(lead):
         return False
     return True
 
