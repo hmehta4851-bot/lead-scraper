@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sunzone Lead Scraper - Simple Guide</title>
+  <style>
+    @page { size: A4; margin: 15mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: #20252b;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    h1, h2, h3 { margin: 0; color: #17223b; }
+    h1 { font-size: 31px; line-height: 1.12; }
+    h2 {
+      margin: 26px 0 12px;
+      padding-bottom: 7px;
+      border-bottom: 3px solid #ef3b24;
+      font-size: 21px;
+    }
+    h3 { margin: 16px 0 7px; font-size: 15px; }
+    p { margin: 0 0 10px; }
+    ul, ol { margin: 7px 0 12px 20px; padding: 0; }
+    li { margin-bottom: 5px; }
+    .cover {
+      min-height: 245mm;
+      padding: 28mm 15mm;
+      border-top: 12px solid #ef3b24;
+      background: #f7f9fc;
+      page-break-after: always;
+    }
+    .brand {
+      color: #ef3b24;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .subtitle {
+      max-width: 560px;
+      margin-top: 15px;
+      color: #4b5563;
+      font-size: 18px;
+    }
+    .date { margin-top: 38px; color: #6b7280; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 9px;
+      margin: 28px 0;
+    }
+    .stat {
+      padding: 14px 8px;
+      border: 1px solid #dbe2ea;
+      background: white;
+      text-align: center;
+    }
+    .stat strong {
+      display: block;
+      color: #ef3b24;
+      font-size: 22px;
+    }
+    .callout {
+      margin: 14px 0;
+      padding: 13px 15px;
+      border-left: 5px solid #ef3b24;
+      background: #fff4f1;
+    }
+    .good {
+      border-left-color: #16835f;
+      background: #effaf6;
+    }
+    .warn {
+      border-left-color: #e4a11b;
+      background: #fff9e9;
+    }
+    table {
+      width: 100%;
+      margin: 10px 0 18px;
+      border-collapse: collapse;
+      page-break-inside: avoid;
+    }
+    th, td {
+      padding: 8px 9px;
+      border: 1px solid #d9dee5;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { color: white; background: #17223b; }
+    tr:nth-child(even) td { background: #f7f9fc; }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin: 15px 0 20px;
+      page-break-inside: avoid;
+    }
+    .flow div {
+      min-height: 68px;
+      padding: 10px 7px;
+      border: 1px solid #d9dee5;
+      background: #f7f9fc;
+      text-align: center;
+      font-weight: 700;
+    }
+    .small { color: #68717e; font-size: 10px; font-weight: 400; }
+    .page-break { page-break-before: always; }
+    .check { color: #16835f; font-weight: 800; }
+    .limit { color: #9a5d00; font-weight: 800; }
+    footer {
+      margin-top: 25px;
+      padding-top: 8px;
+      border-top: 1px solid #d9dee5;
+      color: #727b87;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div class="brand">Sunzone Sports &amp; Play</div>
+    <h1>Lead Scraper System<br>Simple Operating Guide</h1>
+    <p class="subtitle">
+      A plain-language explanation of what the system does, how leads reach
+      the Google Sheet, what happens automatically, and what its practical
+      limits are.
+    </p>
+    <div class="stats">
+      <div class="stat"><strong>8</strong>sales verticals</div>
+      <div class="stat"><strong>18</strong>product groups</div>
+      <div class="stat"><strong>29,373</strong>unique keywords</div>
+      <div class="stat"><strong>9</strong>sources attempted</div>
+    </div>
+    <div class="callout good">
+      <strong>Current status:</strong> rebuilt, independently reviewed by
+      Codex and Claude Code, tested locally, pushed to GitHub, old lead tabs
+      archived and cleared, and a fresh production run launched.
+    </div>
+    <p class="date">Prepared on 13 June 2026</p>
+  </section>
+
+  <h2>1. What This System Does</h2>
+  <p>
+    The system searches the internet for businesses that may buy Sunzone
+    products. It collects available company and contact details, removes known
+    competitors and duplicates, groups the lead under the correct Sunzone
+    vertical, and saves it in the existing Google Sheet.
+  </p>
+  <div class="flow">
+    <div>Choose city<br><span class="small">Mumbai, Delhi, etc.</span></div>
+    <div>Choose product<br><span class="small">18 groups</span></div>
+    <div>Search sources<br><span class="small">9 attempts</span></div>
+    <div>Clean &amp; check<br><span class="small">quality controls</span></div>
+    <div>Save lead<br><span class="small">Google Sheet + email</span></div>
+  </div>
+  <div class="callout">
+    <strong>Important:</strong> this is a prospect-finding system. It helps the
+    sales team find and organize possible buyers. A salesperson should still
+    verify the requirement before sending a quotation.
+  </div>
+
+  <h2>2. Product Organization</h2>
+  <p>
+    Leads are no longer scattered across many unrelated product tabs. They are
+    divided into Sunzone's commercial verticals, while the exact product remains
+    visible in a separate column.
+  </p>
+  <table>
+    <tr><th>Vertical</th><th>Product groups included</th></tr>
+    <tr><td>Playful</td><td>EPDM playground/wet pour; EPDM, SBR and PU binder</td></tr>
+    <tr><td>Graceful</td><td>Football and box cricket turf; cricket pitch; landscape grass; hockey turf; multi-sport, tennis and padel turf; turf accessories</td></tr>
+    <tr><td>Powerful</td><td>Gym astro turf; gym PVC flooring; rubber rolls; rubber tiles and mats</td></tr>
+    <tr><td>Joyful</td><td>PVC and vinyl badminton flooring</td></tr>
+    <tr><td>Acryplay</td><td>Acrylic court systems; PP modular court tiles</td></tr>
+    <tr><td>Track &amp; Field</td><td>Synthetic athletic track systems</td></tr>
+    <tr><td>Sports Equipment</td><td>Sports equipment and turnkey facilities</td></tr>
+    <tr><td>Woodplay</td><td>Maple and Hevea wooden sports flooring</td></tr>
+  </table>
+
+  <h2>3. Keyword System</h2>
+  <p>
+    The master library contains 29,373 keywords. Every keyword is unique after
+    ignoring capital letters. Each product keeps its own position in the
+    library, so the system moves to a new keyword on the next run instead of
+    repeating the same one forever.
+  </p>
+  <ul>
+    <li>All 18 product groups from the workbook are included.</li>
+    <li>Words containing <strong>[city]</strong> are automatically changed to the current city.</li>
+    <li>If the library file is temporarily unavailable, safe backup keywords are used.</li>
+    <li>One keyword per product is used in each run to keep runtime controlled.</li>
+  </ul>
+  <div class="callout warn">
+    The full 29,373-keyword library is preserved, but it is intentionally not
+    searched in one day. Doing that would require hundreds of thousands of
+    website visits and would cause blocking and very long runs. The system
+    rotates through it gradually.
+  </div>
+
+  <div class="page-break"></div>
+  <h2>4. Where Leads Are Searched</h2>
+  <table>
+    <tr><th>Source</th><th>What to expect</th></tr>
+    <tr><td>Google Maps</td><td>Usually the strongest source for local businesses and phone numbers.</td></tr>
+    <tr><td>Sulekha</td><td>Useful for contractors and service businesses, but some searches may have no matching page.</td></tr>
+    <tr><td>ExportersIndia</td><td>Business and supplier listings.</td></tr>
+    <tr><td>TradeIndia</td><td>Business listings and commercial contacts.</td></tr>
+    <tr><td>DuckDuckGo</td><td>Finds independent websites outside directories.</td></tr>
+    <tr><td>Bing</td><td>Adds broader web coverage.</td></tr>
+    <tr><td>YellowPages</td><td>Local directory listings.</td></tr>
+    <tr><td>IndiaMART</td><td>Attempted, but phone numbers are often hidden unless logged in.</td></tr>
+    <tr><td>JustDial</td><td>Attempted, but automated access is sometimes blocked.</td></tr>
+  </table>
+  <p>
+    A problem in one source does not stop the other sources. The final email
+    reports failed source attempts separately, so "attempted" is never confused
+    with "productive."
+  </p>
+
+  <h2>5. How Bad Leads Are Reduced</h2>
+  <ul>
+    <li><span class="check">Own-brand block:</span> Sunzone names, website and email domain are rejected.</li>
+    <li><span class="check">Competitor block:</span> known competitor names and domains are rejected.</li>
+    <li><span class="check">Phone check:</span> only leads with a usable Indian phone number reach the sheet.</li>
+    <li><span class="check">Global duplicate check:</span> the phone is checked across every live vertical tab.</li>
+    <li><span class="check">Source balance:</span> results are selected in rounds so one large source cannot occupy every slot.</li>
+    <li><span class="check">Lead score:</span> phone, email, contact name, designation and website improve the score.</li>
+  </ul>
+  <div class="callout warn">
+    No public-web scraper can promise that every business is a genuine buyer or
+    that every competitor in India is known forever. The system blocks the
+    configured competitors and records the search source, but sales verification
+    remains necessary.
+  </div>
+
+  <h2>6. What Appears in Google Sheets</h2>
+  <p>The live tabs are: Playful Leads, Graceful Leads, Powerful Leads, Joyful Leads, Acryplay Leads, Track &amp; Field Leads, Sports Equipment Leads and Woodplay Leads.</p>
+  <p>Each saved row contains:</p>
+  <p><strong>Date, City, Vertical, Product, Search Keyword, Company Name, Contact Person, Phone, Email, Designation, Source, Website and Lead Score.</strong></p>
+  <p>
+    Before the new structure was started, old product tabs were copied into
+    timestamped archive tabs and then cleared. This preserves recoverability.
+  </p>
+
+  <div class="page-break"></div>
+  <h2>7. What Runs Automatically</h2>
+  <ol>
+    <li>The main scraper is scheduled for <strong>8:00 AM India time, Monday to Saturday</strong>.</li>
+    <li>It chooses the next city and a new keyword for each product.</li>
+    <li>It attempts all nine sources for each selected keyword.</li>
+    <li>It writes only new phone numbers to the Google Sheet.</li>
+    <li>It emails start, progress and completion information.</li>
+    <li>A watchdog checks at <strong>11:00 AM India time</strong>.</li>
+    <li>If the main run did not complete, the watchdog automatically triggers another run.</li>
+  </ol>
+  <div class="callout good">
+    Normal daily operation requires no action from the owner. Your practical
+    job is to review the Google Sheet and pass qualified leads to salespeople.
+  </div>
+
+  <h2>8. Recovery and Safety</h2>
+  <ul>
+    <li>Each website source is isolated, so one failure does not crash the product.</li>
+    <li>Browser sources use separate sessions, preventing one website from contaminating another.</li>
+    <li>Progress is saved atomically, reducing the chance of a damaged state file.</li>
+    <li>Two scraper runs cannot overwrite each other because GitHub concurrency is enabled.</li>
+    <li>If existing phones cannot be loaded from the sheet, the run stops and retries instead of risking duplicates.</li>
+    <li>Old data is archived before a reset.</li>
+  </ul>
+
+  <h2>9. Verification Completed</h2>
+  <table>
+    <tr><th>Verification</th><th>Result</th></tr>
+    <tr><td>Automated test suite</td><td>17 tests passed</td></tr>
+    <tr><td>Keyword count and uniqueness</td><td>29,373 unique keywords verified</td></tr>
+    <tr><td>Vertical/product routing</td><td>8 verticals and 18 products verified</td></tr>
+    <tr><td>Source failure simulation</td><td>All remaining sources continued after a forced timeout</td></tr>
+    <tr><td>Live browser test</td><td>Google Maps returned 5 real results; Sulekha returned 0 for the test phrase</td></tr>
+    <tr><td>Independent review</td><td>Claude Code final verdict: GO</td></tr>
+    <tr><td>Live reset workflow</td><td>Completed successfully with archive-first behavior</td></tr>
+  </table>
+
+  <h2>10. Billing in Simple Terms</h2>
+  <p>
+    The daily scraper does not call Claude, Codex, Gemini, OpenAI or Anthropic
+    APIs. Codex and Claude Code were used to build and review the code, but they
+    are not required for the daily run.
+  </p>
+  <p>
+    The automation runs on GitHub Actions and writes through Google Sheets
+    authentication already configured in the repository. GitHub and Google
+    usage remain subject to the limits of the accounts attached to them. The
+    code itself does not add a paid AI API bill.
+  </p>
+
+  <h2>11. What You Should Watch</h2>
+  <ul>
+    <li>Completion email: total new leads and source health.</li>
+    <li>Google Sheet: whether phone, company and product match the intended lead.</li>
+    <li>Repeated zero-yield sources: websites can change their layout or blocking rules.</li>
+    <li>Competitor list: add a newly discovered competitor when sales identifies one.</li>
+  </ul>
+  <div class="callout">
+    <strong>Bottom line:</strong> the system is designed to be autonomous,
+    transparent and recoverable. It can significantly reduce manual prospecting,
+    but it should support sales judgment rather than replace it.
+  </div>
+
+  <footer>
+    Sunzone Lead Scraper - plain-language operating guide - 13 June 2026
+  </footer>
+</body>
+</html>
