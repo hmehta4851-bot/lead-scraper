@@ -3,7 +3,6 @@ from datetime import datetime
 
 from config import SHEET_HEADERS, SHEET_ID, VERTICALS
 from sheets import get_client
-import gspread
 
 LEGACY_TABS = [
     "EPDM Granules",
@@ -30,11 +29,15 @@ def clear_all_tabs():
     current_tabs = [cfg["tab"] for cfg in VERTICALS.values()]
     tab_names = list(dict.fromkeys(LEGACY_TABS + current_tabs))
     archive_stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    worksheets = sh.worksheets()
+    worksheet_by_title = {ws.title: ws for ws in worksheets}
+    archive_worksheets = [
+        ws for ws in worksheets if ws.title.startswith("Archive ")
+    ]
 
     for tab_name in tab_names:
-        try:
-            ws = sh.worksheet(tab_name)
-        except gspread.exceptions.WorksheetNotFound:
+        ws = worksheet_by_title.get(tab_name)
+        if ws is None:
             print(f"  [{tab_name}] Tab not found — skipping")
             continue
 
@@ -42,6 +45,7 @@ def clear_all_tabs():
         is_legacy = tab_name in LEGACY_TABS
         if len(all_rows) <= 1 and is_legacy:
             sh.del_worksheet(ws)
+            worksheet_by_title.pop(tab_name, None)
             print(f"  [{tab_name}] Removed empty legacy tab")
             continue
         if len(all_rows) <= 1:
@@ -55,6 +59,7 @@ def clear_all_tabs():
             cols=max(len(row) for row in all_rows),
         )
         archive.update("A1", all_rows)
+        archive_worksheets.append(archive)
         print(f"  [{tab_name}] Backed up to [{archive_name}]")
 
         # Delete all rows except header (row 1)
@@ -63,21 +68,21 @@ def clear_all_tabs():
         print(f"  [{tab_name}] Cleared {row_count - 1} rows")
         if is_legacy:
             sh.del_worksheet(ws)
+            worksheet_by_title.pop(tab_name, None)
             print(f"  [{tab_name}] Removed legacy tab after backup")
 
     for tab_name in current_tabs:
-        try:
-            ws = sh.worksheet(tab_name)
-        except gspread.exceptions.WorksheetNotFound:
+        ws = worksheet_by_title.get(tab_name)
+        if ws is None:
             ws = sh.add_worksheet(title=tab_name, rows=1000, cols=20)
+            worksheet_by_title[tab_name] = ws
         ws.update("A1", [SHEET_HEADERS])
 
-    for ws in sh.worksheets():
-        if ws.title.startswith("Archive "):
-            try:
-                ws.hide()
-            except Exception:
-                pass
+    for ws in archive_worksheets:
+        try:
+            ws.hide()
+        except Exception:
+            pass
 
     print("\nOnly 8 live vertical tabs remain visible; archives are hidden.")
 
