@@ -71,13 +71,7 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
     all_raw = []
 
     for kw in keyword_list:
-        # Run all 9 sources for every keyword — early exit only after full keyword pass
-        print(f"  [Google Maps] {kw} in {city}")
-        before = len(all_raw)
-        all_raw.extend(googlemaps.search(kw, city, max_results=20))
-        print(f"  [Google Maps] +{len(all_raw)-before} raw")
-        time.sleep(1)
-
+        # Non-Google sources run FIRST so their entries win dedup over Google Maps
         print(f"  [Sulekha] {kw} in {city}")
         before = len(all_raw)
         all_raw.extend(sulekha.search(kw, city, max_results=20))
@@ -126,6 +120,13 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
         print(f"  [JustDial] +{len(all_raw)-before} raw")
         time.sleep(1)
 
+        # Google Maps runs LAST — fills gaps only; duplicates already claimed by other sources get deduped out
+        print(f"  [Google Maps] {kw} in {city}")
+        before = len(all_raw)
+        all_raw.extend(googlemaps.search(kw, city, max_results=20))
+        print(f"  [Google Maps] +{len(all_raw)-before} raw")
+        time.sleep(1)
+
         # Skip remaining keywords once target is reached
         if len([l for l in all_raw if is_actionable_lead(l)]) >= target:
             break
@@ -152,8 +153,8 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
     # Enrich website-only leads — visit company site to resolve phone number
     no_phone = [l for l in deduped if not l.get("phone") and l.get("website")]
     if no_phone:
-        print(f"  [Enricher] Resolving phones for {min(len(no_phone), 40)} website-only leads...")
-        for lead in no_phone[:40]:
+        print(f"  [Enricher] Resolving phones for {min(len(no_phone), 60)} website-only leads...")
+        for lead in no_phone[:60]:
             try:
                 enriched = enrich_website(lead["website"], max_pages=2)
                 p = enriched.get("phone", "")
@@ -169,9 +170,19 @@ def scrape_product(keyword_list, city, target=LEADS_PER_PRODUCT):
                 pass
 
     actionable = [l for l in deduped if is_actionable_lead(l)]
-    # Sort by data completeness — best leads first, then take top N
+    # Sort by data completeness — best leads first
     actionable.sort(key=_lead_score, reverse=True)
-    top = actionable[:target]
+    # Enforce source diversity: max 20 leads from any single source
+    from collections import Counter
+    source_counts: Counter = Counter()
+    top = []
+    for lead in actionable:
+        src = lead.get("source", "Unknown")
+        if source_counts[src] < 20:
+            top.append(lead)
+            source_counts[src] += 1
+        if len(top) >= target:
+            break
 
     # Enrich top leads — fill email + contact person from company website (free)
     needs_enrich = [
