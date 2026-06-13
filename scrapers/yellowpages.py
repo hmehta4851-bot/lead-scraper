@@ -35,7 +35,7 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
     seen_companies: set = set()
 
     url = (
-        f"https://www.yellowpages.in/search"
+        f"http://www.yellowpages.in/search"
         f"?keyword={quote_plus(keyword)}&city={quote_plus(city)}"
     )
 

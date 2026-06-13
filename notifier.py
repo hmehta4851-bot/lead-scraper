@@ -53,25 +53,26 @@ def notify_tier2_exhausted():
     )
 
 
-def notify_scraper_started(city, total_products):
+def notify_scraper_started(city, total_verticals):
     send_notification(
         subject=f"[Lead Scraper] STARTED — {city}",
         body=(
             f"Lead scraper has started.\n\n"
             f"City: {city}\n"
-            f"Products to scrape: {total_products}\n\n"
-            f"You will receive a progress update every 15 minutes and a final summary when done."
+            f"Verticals to complete: {total_verticals}\n"
+            f"Minimum target: 50 qualified leads per vertical\n\n"
+            f"You will receive progress updates and a final quota report."
         ),
     )
 
 
 def notify_progress_update(city, completed, total, leads_so_far, elapsed_min):
     send_notification(
-        subject=f"[Lead Scraper] Progress — {city} ({completed}/{total} products)",
+        subject=f"[Lead Scraper] Progress — {city} ({completed}/{total} passes)",
         body=(
             f"Scraper is still running.\n\n"
             f"City: {city}\n"
-            f"Products completed: {completed} of {total}\n"
+            f"Vertical passes completed: {completed} of {total}\n"
             f"Leads collected so far: {leads_so_far}\n"
             f"Time elapsed: {elapsed_min} minutes\n\n"
             f"Next update in 15 minutes (or final summary when done)."
@@ -87,6 +88,9 @@ def notify_daily_summary(
     quality=None,
     duration_min=None,
     source_failures=None,
+    vertical_counts=None,
+    vertical_target=50,
+    complete=True,
 ):
     sep = "─" * 42
 
@@ -119,15 +123,29 @@ def notify_daily_summary(
     for source, count in sorted((source_failures or {}).items()):
         failure_lines.append(f"  {source:<20} {count:>4} failed attempts")
 
+    quota_lines = []
+    for vertical, count in (vertical_counts or {}).items():
+        status = "COMPLETE" if count >= vertical_target else "SHORT"
+        quota_lines.append(
+            f"  {vertical:<20} {count:>3}/{vertical_target}  {status}"
+        )
+    run_status = "COMPLETE" if complete else "INCOMPLETE"
+
     body = f"""
 ╔══════════════════════════════════════════╗
   SUNZONE PROSPECT FLOW — DAILY REPORT
 ╚══════════════════════════════════════════╝
 
   City           : {city}
-  Total Leads    : {total_leads}
+  Run Status     : {run_status}
+  New Leads      : {total_leads}
   Duration       : {duration_str}
   Sheet          : https://docs.google.com/spreadsheets/d/1p48H_6PpWgYFyaAtPXijyeAlk1Tgq5kUUQORMBgG8eM
+
+{sep}
+  VERTICAL QUOTAS
+{sep}
+{chr(10).join(quota_lines) if quota_lines else "  (quota data unavailable)"}
 
 {sep}
   LEADS BY PRODUCT
@@ -147,13 +165,14 @@ def notify_daily_summary(
 {chr(10).join(quality_lines) if quality_lines else "  (quality data unavailable)"}
 
 {sep}
-  SOURCES USED (9 total)
+  SOURCES USED (11 free sources)
 {sep}
-  1. Google Maps      6. DuckDuckGo
-  2. Sulekha          7. Bing
-  3. ExportersIndia   8. YellowPages India
-  4. IndiaMART        9. JustDial
-  5. TradeIndia
+  1. Google Maps      7. Bing
+  2. OpenStreetMap    8. Yahoo
+  3. Sulekha          9. YellowPages India
+  4. ExportersIndia  10. JustDial
+  5. IndiaMART       11. TradeIndia
+  6. DuckDuckGo
 
 {sep}
   SOURCE HEALTH
@@ -166,6 +185,9 @@ Built for Sunzone Sports & Play
 """.strip()
 
     send_notification(
-        subject=f"[Sunzone Prospect Flow] DONE — {city} — {total_leads} leads",
+        subject=(
+            f"[Sunzone Prospect Flow] {run_status} — "
+            f"{city} — {total_leads} new leads"
+        ),
         body=body,
     )

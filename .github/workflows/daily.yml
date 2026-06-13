@@ -19,7 +19,7 @@ permissions:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 360
 
     steps:
       - name: Checkout repo
@@ -51,7 +51,21 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           NOTIFY_EMAIL: "hmehta4851@gmail.com"
         run: |
-          python main.py || (echo "First attempt failed — retrying in 60s..." && sleep 60 && python main.py)
+          set +e
+          python main.py
+          status=$?
+          if [ "$status" -eq 1 ]; then
+            echo "Unexpected failure — retrying once in 60s..."
+            sleep 60
+            python main.py
+            status=$?
+          fi
+          set -e
+          if [ "$status" -eq 2 ]; then
+            echo "City completed with verified lead shortfalls; see quota report."
+            exit 0
+          fi
+          exit "$status"
 
       - name: Send failure alert
         if: failure() && steps.run_scraper.outcome == 'failure'
@@ -83,7 +97,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main
           git add state.json
           git diff --staged --quiet || git commit -m "chore: update city rotation state [skip ci]"
+          git pull --rebase origin main
           git push

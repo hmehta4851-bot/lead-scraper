@@ -11,6 +11,11 @@ DEFAULT_STATE = {
     "keyword_cursors": {},
     "buyer_cursors": {},
     "last_transition": "",
+    "last_run_date": "",
+    "last_run_city": "",
+    "last_run_cities": [],
+    "last_run_city_count": 0,
+    "rotation_cycle": 1,
 }
 
 
@@ -33,35 +38,32 @@ def save_state(state):
     os.replace(temp_file, STATE_FILE)
 
 
-def get_today_city(state, tier1_cities, tier2_cities):
-    if state["tier"] == 1:
-        cities = tier1_cities
+def get_scheduled_city(state, cities, run_date):
+    """Keep manual/retry runs on one city, but change city on a new date."""
+    run_date = str(run_date)
+    if state.get("last_run_date") == run_date and state.get("last_run_city"):
+        return state["last_run_city"]
+    return cities[int(state.get("city_index", 0)) % len(cities)]
+
+
+def complete_city_batch(state, cities, run_date, used_cities):
+    """Advance past every town included in today's combined lead batch."""
+    run_date = str(run_date)
+    if state.get("last_run_date") == run_date:
+        save_state(state)
+        return state
+    consumed = max(1, len(used_cities))
+    next_index = int(state.get("city_index", 0)) + consumed
+    cycles, next_index = divmod(next_index, len(cities))
+    if cycles:
+        state["rotation_cycle"] = int(state.get("rotation_cycle", 1)) + cycles
+        state["last_transition"] = "national_rotation_restarted"
     else:
-        cities = tier2_cities
-    idx = state["city_index"] % len(cities)
-    return cities[idx]
-
-
-def advance_city(state, tier1_cities, tier2_cities):
-    state["last_transition"] = ""
-    if state["tier"] == 1:
-        cities = tier1_cities
-    else:
-        cities = tier2_cities
-
-    state["city_index"] += 1
-
-    if state["city_index"] >= len(cities):
-        if state["tier"] == 1:
-            state["exhausted_tier1"] = True
-            state["last_transition"] = "tier1_to_tier2"
-            state["tier"] = 2
-            state["city_index"] = 0
-        else:
-            state["exhausted_tier2"] = True
-            state["last_transition"] = "tier2_to_tier1"
-            state["tier"] = 1
-            state["city_index"] = 0
-
+        state["last_transition"] = ""
+    state["last_run_date"] = run_date
+    state["last_run_city"] = used_cities[0]
+    state["last_run_cities"] = list(used_cities)
+    state["last_run_city_count"] = consumed
+    state["city_index"] = next_index
     save_state(state)
     return state

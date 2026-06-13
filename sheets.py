@@ -3,6 +3,7 @@ from google.oauth2.service_account import Credentials
 import os
 import json
 import time
+from collections import Counter
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -58,8 +59,67 @@ def load_existing_phones(sheet_id, tab_names):
     return phones
 
 
+def load_daily_snapshot(sheet_id, tab_names, run_date, city=None):
+    """Load dedupe phones plus today's per-vertical/source counts in one pass."""
+    client = get_client()
+    sh = client.open_by_key(sheet_id)
+    worksheets = {ws.title: ws for ws in sh.worksheets()}
+    phones = set()
+    vertical_counts = Counter()
+    vertical_source_counts = {}
+
+    for tab_name in dict.fromkeys(tab_names):
+        ws = worksheets.get(tab_name)
+        if ws is None:
+            continue
+        values = ws.get_all_values()
+        if not values:
+            continue
+        headers = values[0]
+        indexes = {name: headers.index(name) for name in headers}
+        phone_col = indexes.get("Phone")
+        date_col = indexes.get("Date")
+        city_col = indexes.get("City")
+        vertical_col = indexes.get("Vertical")
+        source_col = indexes.get("Source")
+
+        for row in values[1:]:
+            if phone_col is not None and len(row) > phone_col:
+                phone = _normalize_phone(row[phone_col])
+                if phone:
+                    phones.add(phone)
+            if (
+                date_col is None
+                or city_col is None
+                or vertical_col is None
+                or len(row) <= max(date_col, city_col, vertical_col)
+                or row[date_col] != str(run_date)
+                or (
+                    city is not None
+                    and _normalize_city(row[city_col]) != _normalize_city(city)
+                )
+            ):
+                continue
+            vertical = row[vertical_col].strip()
+            if not vertical:
+                continue
+            vertical_counts[vertical] += 1
+            source = (
+                row[source_col].strip()
+                if source_col is not None and len(row) > source_col
+                else "Unknown"
+            ) or "Unknown"
+            vertical_source_counts.setdefault(vertical, Counter())[source] += 1
+
+    return phones, vertical_counts, vertical_source_counts
+
+
 def _normalize_phone(value):
     return "".join(c for c in str(value) if c.isdigit())[-10:]
+
+
+def _normalize_city(value):
+    return str(value).partition(",")[0].strip().casefold()
 
 
 def append_leads(

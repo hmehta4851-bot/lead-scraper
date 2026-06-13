@@ -1,25 +1,28 @@
 """Business configuration for the Sunzone lead-scraping workflow."""
 
+import json
+from pathlib import Path
+
 SHEET_ID = "1p48H_6PpWgYFyaAtPXijyeAlk1Tgq5kUUQORMBgG8eM"
 NOTIFY_EMAIL = "hmehta4851@gmail.com"
 
 LEADS_PER_PRODUCT = 30
 TARGET_LEADS_PER_VERTICAL = 50
 KEYWORDS_PER_PRODUCT_PER_RUN = 2
+MAX_SAME_CITY_ROUNDS = 8
+MAX_RUN_MINUTES = 330
+MAX_CITIES_PER_DAY = 20
+NO_PROGRESS_ROUNDS_BEFORE_NEXT_CITY = 1
 SOURCE_RESULT_LIMIT = 20
 SOURCE_LEAD_CAP = 20
-MAX_LEADS_PER_SOURCE_PER_VERTICAL = 10
+MAX_LEADS_PER_SOURCE_PER_VERTICAL = 25
 
-TIER1_CITIES = [
-    "Mumbai", "Delhi", "Bangalore", "Chennai",
-    "Hyderabad", "Pune", "Kolkata", "Ahmedabad",
-]
+with Path(__file__).with_name("india_cities.json").open(encoding="utf-8") as handle:
+    _CITY_DATA = json.load(handle)
 
-TIER2_CITIES = [
-    "Jaipur", "Lucknow", "Surat", "Nagpur", "Indore",
-    "Vadodara", "Bhopal", "Visakhapatnam", "Patna", "Coimbatore",
-    "Gurgaon", "Noida", "Chandigarh", "Kochi", "Guwahati",
-    "Bhubaneswar", "Thiruvananthapuram", "Nashik", "Aurangabad", "Rajkot",
+INDIA_CITY_ROTATION = [
+    f"{item['city']}, {item['state']}"
+    for item in _CITY_DATA["cities"]
 ]
 
 # Brand, supplier, manufacturer, and direct sports-flooring competitors.

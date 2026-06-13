@@ -6,8 +6,11 @@ from unittest.mock import patch
 
 import main
 from config import MAX_LEADS_PER_SOURCE_PER_VERTICAL, VERTICALS, iter_products
-from keyword_library import add_buyer_intent, select_rotating_keywords
-from state import advance_city
+from keyword_library import (
+    add_buyer_intent,
+    select_rotating_keywords,
+)
+from state import complete_city_batch, get_scheduled_city
 from qualification import qualify_lead
 
 
@@ -155,6 +158,14 @@ class PipelineTests(unittest.TestCase):
         queries = add_buyer_intent("Playful", ["EPDM flooring"], cursor=0)
         self.assertEqual(queries, ["EPDM flooring school"])
 
+    def test_recovery_registry_excludes_supplier_marketplaces(self):
+        recovery_sources = {name for name, _ in main.BUYER_SOURCE_REGISTRY}
+        self.assertIn("Google Maps", recovery_sources)
+        self.assertIn("OpenStreetMap", recovery_sources)
+        self.assertNotIn("IndiaMART", recovery_sources)
+        self.assertNotIn("TradeIndia", recovery_sources)
+        self.assertNotIn("ExportersIndia", recovery_sources)
+
     def test_phone_dedup_normalizes_indian_formats(self):
         leads = main._deduplicate(
             [
@@ -209,6 +220,13 @@ class PipelineTests(unittest.TestCase):
             [lead["company"] for lead in accepted],
             ["Gym One", "Gym Three"],
         )
+
+    def test_city_quota_fails_closed_if_one_vertical_is_below_50(self):
+        counts = {vertical: 50 for vertical in VERTICALS}
+        counts["Playful"] = 49
+        self.assertFalse(main.vertical_quotas_met(counts, VERTICALS))
+        counts["Playful"] = 50
+        self.assertTrue(main.vertical_quotas_met(counts, VERTICALS))
 
     def test_product_selection_respects_existing_vertical_source_cap(self):
         raw = [
@@ -315,21 +333,72 @@ class PipelineTests(unittest.TestCase):
         self.assertFalse(qualified)
         self.assertIn("no verified", reason)
 
-    def test_city_cycle_records_each_transition(self):
+    def test_national_city_schedule_changes_once_per_date_and_wraps(self):
         state = {
-            "tier": 1,
             "city_index": 0,
-            "exhausted_tier1": False,
-            "exhausted_tier2": False,
             "keyword_cursors": {},
             "buyer_cursors": {},
             "last_transition": "",
+            "last_run_date": "",
+            "last_run_city": "",
+            "rotation_cycle": 1,
         }
         with patch("state.save_state", return_value=None):
-            advance_city(state, ["Mumbai"], ["Jaipur"])
-            self.assertEqual(state["last_transition"], "tier1_to_tier2")
-            advance_city(state, ["Mumbai"], ["Jaipur"])
-            self.assertEqual(state["last_transition"], "tier2_to_tier1")
+            cities = ["Mumbai, Maharashtra", "Delhi, Delhi"]
+            self.assertEqual(
+                get_scheduled_city(state, cities, "2026-06-13"),
+                "Mumbai, Maharashtra",
+            )
+            complete_city_batch(
+                state,
+                cities,
+                "2026-06-13",
+                ["Mumbai, Maharashtra"],
+            )
+            self.assertEqual(state["city_index"], 1)
+            self.assertEqual(
+                get_scheduled_city(state, cities, "2026-06-13"),
+                "Mumbai, Maharashtra",
+            )
+            complete_city_batch(
+                state,
+                cities,
+                "2026-06-13",
+                ["Mumbai, Maharashtra"],
+            )
+            self.assertEqual(state["city_index"], 1)
+            self.assertEqual(
+                get_scheduled_city(state, cities, "2026-06-14"),
+                "Delhi, Delhi",
+            )
+            complete_city_batch(
+                state,
+                cities,
+                "2026-06-14",
+                ["Delhi, Delhi"],
+            )
+            self.assertEqual(state["city_index"], 0)
+            self.assertEqual(state["rotation_cycle"], 2)
+
+    def test_small_town_batch_advances_past_every_used_town(self):
+        state = {
+            "city_index": 1,
+            "last_run_date": "",
+            "last_run_city": "",
+            "last_run_cities": [],
+            "rotation_cycle": 1,
+        }
+        with patch("state.save_state", return_value=None):
+            cities = ["A", "B", "C", "D"]
+            complete_city_batch(
+                state,
+                cities,
+                "2026-06-13",
+                ["B", "C"],
+            )
+        self.assertEqual(state["city_index"], 3)
+        self.assertEqual(state["last_run_cities"], ["B", "C"])
+        self.assertEqual(state["last_run_city_count"], 2)
 
 
 if __name__ == "__main__":
