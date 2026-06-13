@@ -220,24 +220,34 @@ def main():
 
         for idx, (product_name, product_cfg) in enumerate(PRODUCTS.items(), start=1):
             print(f"\n[{product_name}] Scraping {city}...")
-            leads = scrape_product(product_cfg["keywords"], city, LEADS_PER_PRODUCT)
+            try:
+                leads = scrape_product(product_cfg["keywords"], city, LEADS_PER_PRODUCT)
+            except Exception as e:
+                print(f"  [ERROR] {product_name} scrape crashed: {e} — skipping, continuing with next product")
+                per_product_counts[product_name] = 0
+                time.sleep(2)
+                continue
+
             print(f"  Actionable leads found: {len(leads)}")
 
             if not leads:
                 per_product_counts[product_name] = 0
             else:
-                rows = [format_lead_row(l, product_name, city) for l in leads]
-                added = append_leads(SHEET_ID, product_cfg["tab"], SHEET_HEADERS, rows)
-                per_product_counts[product_name] = added
-                total_added += added
-                print(f"  Added to sheet: {added}")
-                for row in rows:
-                    src = row.get("Source", "Unknown")
-                    per_source_counts[src] = per_source_counts.get(src, 0) + 1
-                    if row.get("Phone"):        quality_stats["with_phone"] += 1
-                    if row.get("Email"):        quality_stats["with_email"] += 1
-                    if row.get("Contact Person"): quality_stats["with_contact"] += 1
-                    if row.get("Website"):      quality_stats["with_website"] += 1
+                try:
+                    rows = [format_lead_row(l, product_name, city) for l in leads]
+                    added = append_leads(SHEET_ID, product_cfg["tab"], SHEET_HEADERS, rows)
+                    per_product_counts[product_name] = added
+                    total_added += added
+                    print(f"  Added to sheet: {added}")
+                    for row in rows:
+                        src = row.get("Source", "Unknown")
+                        per_source_counts[src] = per_source_counts.get(src, 0) + 1
+                        if row.get("Phone"):          quality_stats["with_phone"] += 1
+                        if row.get("Email"):          quality_stats["with_email"] += 1
+                        if row.get("Contact Person"): quality_stats["with_contact"] += 1
+                        if row.get("Website"):        quality_stats["with_website"] += 1
+                except Exception as e:
+                    print(f"  [ERROR] Sheet write for {product_name} failed: {e} — continuing")
 
             # Send progress email if 15 minutes have elapsed since last notification
             now = time.time()

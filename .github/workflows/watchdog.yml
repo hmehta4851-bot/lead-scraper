@@ -1,0 +1,86 @@
+name: Watchdog — Auto-heal if daily run missed
+
+on:
+  schedule:
+    - cron: "30 5 * * 1-6"  # 11:00 AM IST Mon–Sat (3h after main cron)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check if today's scraper ran successfully
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          echo "Checking for successful Daily Lead Scraper run on $TODAY..."
+
+          # Get most recent daily scraper run
+          RESULT=$(gh run list \
+            --repo ${{ github.repository }} \
+            --workflow daily.yml \
+            --limit 5 \
+            --json databaseId,status,conclusion,createdAt \
+            --jq "[.[] | select(.createdAt | startswith(\"$TODAY\"))] | first")
+
+          echo "Latest run today: $RESULT"
+
+          STATUS=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('status','none') if d else 'none')" 2>/dev/null || echo "none")
+          CONCLUSION=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('conclusion','none') if d else 'none')" 2>/dev/null || echo "none")
+
+          echo "Status: $STATUS | Conclusion: $CONCLUSION"
+
+          if [ "$STATUS" = "completed" ] && [ "$CONCLUSION" = "success" ]; then
+            echo "need_rerun=false" >> $GITHUB_OUTPUT
+            echo "Run succeeded today — nothing to do."
+          elif [ "$STATUS" = "in_progress" ] || [ "$STATUS" = "queued" ]; then
+            echo "need_rerun=false" >> $GITHUB_OUTPUT
+            echo "Run is still in progress — nothing to do."
+          else
+            echo "need_rerun=true" >> $GITHUB_OUTPUT
+            echo "No successful run found today — triggering auto-heal."
+          fi
+
+      - name: Auto-trigger daily scraper
+        if: steps.check.outputs.need_rerun == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Triggering Daily Lead Scraper (watchdog auto-heal)..."
+          gh workflow run daily.yml --repo ${{ github.repository }}
+          echo "Triggered successfully."
+
+      - name: Send watchdog alert email
+        if: steps.check.outputs.need_rerun == 'true'
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: |
+          python3 - <<'EOF'
+          import smtplib, os
+          from email.mime.text import MIMEText
+          msg = MIMEText(
+              "WATCHDOG ALERT: The scheduled 8 AM scraper did not complete successfully.\n\n"
+              "Action taken: Watchdog has automatically re-triggered the scraper.\n\n"
+              "No action needed from you — the system is healing itself.\n\n"
+              "Leads will appear in your Google Sheet once the re-triggered run completes.\n\n"
+              "─────────────────────────────\n"
+              "Sunzone Prospect Flow Automation\n"
+              "Self-healing watchdog system"
+          )
+          msg["Subject"] = "[Sunzone Watchdog] Auto-healed — scraper re-triggered automatically"
+          msg["From"] = os.environ["GMAIL_USER"]
+          msg["To"] = "hmehta4851@gmail.com"
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+              s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
+              s.sendmail(os.environ["GMAIL_USER"], ["hmehta4851@gmail.com"], msg.as_string())
+          print("Watchdog alert sent.")
+          EOF
