@@ -15,7 +15,7 @@ permissions:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 150
 
     steps:
       - name: Checkout repo
@@ -41,13 +41,40 @@ jobs:
           service_account: "lead-scraper@turnkey-pottery-499205-u2.iam.gserviceaccount.com"
 
       - name: Run scraper
+        id: run_scraper
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           NOTIFY_EMAIL: "hmehta4851@gmail.com"
         run: python main.py
 
+      - name: Send failure alert
+        if: failure() && steps.run_scraper.outcome == 'failure'
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_EMAIL: "hmehta4851@gmail.com"
+        run: |
+          python - <<'EOF'
+          import smtplib, os
+          from email.mime.text import MIMEText
+          msg = MIMEText(
+              "The lead scraper FAILED today and did not collect leads.\n\n"
+              "Please check GitHub Actions for details:\n"
+              "https://github.com/hm0163983-sudo/lead-scraper/actions\n\n"
+              "You can manually re-trigger from the Actions tab."
+          )
+          msg["Subject"] = "[Lead Scraper] FAILED — manual re-run needed"
+          msg["From"] = os.environ["GMAIL_USER"]
+          msg["To"] = os.environ["NOTIFY_EMAIL"]
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+              s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
+              s.sendmail(os.environ["GMAIL_USER"], [os.environ["NOTIFY_EMAIL"]], msg.as_string())
+          print("Failure alert sent.")
+          EOF
+
       - name: Commit state.json
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
