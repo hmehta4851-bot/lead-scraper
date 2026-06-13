@@ -25,14 +25,12 @@ PRODUCTS = {
             "rubber flooring contractor",
             "sports flooring applicator",
             "rubber safety surfacing contractor",
-            # Dealers & Suppliers
-            "EPDM granules supplier",
-            "rubber granules supplier",
-            "EPDM rubber dealer",
             # Education & Institutional
             "school playground flooring contractor",
             "kids play area flooring contractor",
             "preschool rubber flooring",
+            "park flooring contractor",
+            "playground equipment contractor",
             # Hospitality & Real Estate
             "township playground contractor",
             "housing society play area contractor",
@@ -46,13 +44,13 @@ PRODUCTS = {
         "tab": "PU Binder",
         "keywords": [
             # Contractors
-            "PU binder supplier",
-            "EPDM PU binder dealer",
             "running track contractor",
             "athletic track contractor",
             "rubber flooring installer",
             "sports surface contractor",
             "playground flooring applicator",
+            "athletic track maintenance contractor",
+            "sports surface repair contractor",
             # Broader track & field
             "synthetic track contractor",
             "PU running track builder",
@@ -82,12 +80,11 @@ PRODUCTS = {
             # Institutional
             "school football ground contractor",
             "sports ground contractor",
-            # Dealers
-            "artificial grass dealer",
-            "artificial turf supplier",
             # Municipal & PSU
             "municipal sports ground contractor",
             "sports complex football turf",
+            "football ground developer",
+            "sports ground construction company",
         ],
         "gmaps_types": ["stadium", "sports_complex"],
     },
@@ -99,12 +96,12 @@ PRODUCTS = {
             "synthetic hockey turf installer",
             "hockey academy",
             "hockey stadium contractor",
-            # Dealers & institutional
-            "FIH hockey turf supplier",
+            # Institutional
             "astroturf hockey contractor",
             "sports complex hockey",
+            "hockey ground developer",
             # Government
-            "hockey turf supplier India",
+            "government sports contractor",
             "sports authority hockey contractor",
             "state hockey association",
             # Broader
@@ -130,11 +127,10 @@ PRODUCTS = {
             # Institutional
             "school sports ground contractor",
             "sports academy flooring",
-            # Dealers
-            "artificial grass dealer",
-            "multi sport turf supplier",
-            # Corporate
+            # Corporate & developers
             "corporate campus sports turf",
+            "real estate sports amenity contractor",
+            "sports complex developer",
         ],
         "gmaps_types": ["sports_complex", "school"],
     },
@@ -150,11 +146,10 @@ PRODUCTS = {
             "cricket turf contractor",
             "artificial cricket pitch",
             "cricket practice net contractor",
-            # Dealers
-            "artificial cricket turf supplier",
-            "cricket turf dealer",
-            # Institutional
+            # Institutional & developers
             "school cricket ground contractor",
+            "cricket ground developer",
+            "sports ground maintenance company",
             "sports academy cricket",
             "cricket turf installer",
         ],
@@ -173,7 +168,7 @@ PRODUCTS = {
             "sports club padel",
             # Geographic & market
             "padel tennis court India",
-            "padel court supplier",
+            "padel court management company",
             # Hospitality crossover
             "hotel padel court",
             "resort padel court",
@@ -192,19 +187,18 @@ PRODUCTS = {
             "indoor sports complex owner",
             # Contractors
             "badminton court flooring contractor",
-            "PVC badminton flooring supplier",
             "indoor sports flooring contractor",
             "synthetic badminton court",
             "indoor court PVC flooring",
+            "indoor sports court contractor",
+            "sports hall renovation contractor",
             # Institutional
             "school badminton court contractor",
             "college badminton court",
             # Corporate & hospitality
             "corporate badminton court",
             "hotel badminton court contractor",
-            # Dealers
-            "badminton flooring dealer",
-            "sports court flooring supplier",
+            "sports complex renovation contractor",
         ],
         "gmaps_types": ["sports_complex"],
     },
@@ -213,16 +207,16 @@ PRODUCTS = {
     "Gym Rubber Roll Flooring": {
         "tab": "Gym Rubber Roll Flooring",
         "keywords": [
-            # Contractors & dealers
-            "gym rubber flooring dealer",
-            "gym rubber roll supplier",
+            # Contractors
             "gym setup contractor",
-            "gym flooring supplier",
             "commercial gym flooring",
+            "gym renovation contractor",
+            "fitness center setup company",
+            "commercial gym setup contractor",
             # Direct buyers
             "gym owner",
             "fitness center flooring contractor",
-            "CrossFit flooring dealer",
+            "CrossFit box setup contractor",
             # Fitness segments
             "martial arts gym flooring",
             "boxing gym flooring",
@@ -243,19 +237,17 @@ PRODUCTS = {
             "CrossFit box owner",
             "crossfit gym owner",
             "functional training gym owner",
-            # Contractors & dealers
-            "gym astro turf supplier",
-            "sled push turf dealer",
+            # Contractors
             "functional training turf",
             "gym turf flooring",
             "turf gym flooring",
             "fitness turf contractor",
+            "gym interior contractor",
+            "sports performance facility contractor",
             # Hospitality
             "hotel gym astro turf",
             "sports performance centre",
-            # Dealers
-            "gym equipment dealer",
-            "gym interior contractor",
+            "gym interior designer",
         ],
         "gmaps_types": ["gym"],
     },
@@ -268,7 +260,7 @@ PRODUCTS = {
             "wooden sports flooring contractor",
             "hardwood court contractor",
             "wooden court installer",
-            "sports wooden flooring supplier",
+            "indoor sports hall contractor",
             # Direct buyers
             "maple wooden basketball court",
             "basketball wooden floor contractor",
@@ -356,8 +348,7 @@ PRODUCTS = {
             "clubhouse basketball court",
             "housing society basketball court",
             "township basketball court",
-            # Dealers
-            "basketball court flooring supplier",
+            "sports hall construction company",
         ],
         "gmaps_types": ["sports_complex", "school"],
     },
@@ -366,25 +357,24 @@ PRODUCTS = {
     "PP Interlocking Court Tiles": {
         "tab": "PP Interlocking Tiles",
         "keywords": [
-            # Contractors & dealers
-            "interlocking court tiles dealer",
-            "PP sports tiles supplier",
+            # Contractors & buyers
             "modular sports flooring",
             "interlocking sports tiles India",
-            "sports tiles dealer",
-            # Buyers - outdoor & rooftop
             "outdoor court tiles contractor",
+            "outdoor sports court contractor",
             "rooftop court tiles",
             "terrace sports tiles",
             "multi purpose court tiles",
             # Residential
             "housing society court tiles",
             "residential sports court tiles",
+            "apartment sports amenity contractor",
+            "residential sports court developer",
             # Institutional
             "school outdoor court tiles",
-            # Online & distribution
-            "sports flooring distributor",
-            "interlocking tiles wholesale",
+            # Commercial
+            "commercial sports facility contractor",
+            "multi-sport complex builder",
         ],
         "gmaps_types": ["sports_complex"],
     },
