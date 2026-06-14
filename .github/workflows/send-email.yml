@@ -1,0 +1,56 @@
+name: Send Email Notification
+
+on:
+  workflow_dispatch:
+    inputs:
+      subject:
+        description: Email subject
+        required: true
+        type: string
+      body:
+        description: Email body (plain text)
+        required: true
+        type: string
+      to:
+        description: Recipient email (defaults to NOTIFY_EMAIL)
+        required: false
+        type: string
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Send Gmail
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          TO_EMAIL: ${{ inputs.to || 'hm0163983@gmail.com' }}
+          SUBJECT: ${{ inputs.subject }}
+          BODY: ${{ inputs.body }}
+        run: |
+          python3 - <<'EOF'
+          import smtplib, os
+          from email.mime.text import MIMEText
+          from email.mime.multipart import MIMEMultipart
+
+          user  = os.environ["GMAIL_USER"]
+          pwd   = os.environ["GMAIL_APP_PASSWORD"]
+          to    = os.environ["TO_EMAIL"]
+          subj  = os.environ["SUBJECT"]
+          body  = os.environ["BODY"]
+
+          msg = MIMEMultipart("alternative")
+          msg["Subject"] = subj
+          msg["From"]    = f"Sunzone Indexing Bot <{user}>"
+          msg["To"]      = to
+
+          # Plain text part
+          msg.attach(MIMEText(body, "plain"))
+
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+              s.login(user, pwd)
+              s.sendmail(user, [to], msg.as_string())
+
+          print(f"Email sent to {to}: {subj}")
+          EOF
