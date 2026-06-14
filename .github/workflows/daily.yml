@@ -79,8 +79,8 @@ jobs:
           fi
           exit "$status"
 
-      - name: Send failure alert
-        if: failure() && steps.run_scraper.outcome == 'failure'
+      - name: Send immediate failure alert
+        if: failure()
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
@@ -90,8 +90,9 @@ jobs:
           import smtplib, os
           from email.mime.text import MIMEText
           msg = MIMEText(
-              "Sunzone Prospect Flow could not complete today's collection after its built-in retry.\n\n"
+              "Sunzone Prospect Flow could not complete today's collection.\n\n"
               "The self-healing watchdog will retry automatically. No routine action is needed.\n\n"
+              "This alert also covers setup, authentication, preflight and scraper-stage failures.\n\n"
               "Technical details:\n"
               "https://github.com/hm0163983-sudo/lead-scraper/actions\n\n"
               "You only need to investigate if a later recovery email says all automatic attempts failed."
