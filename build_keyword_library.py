@@ -10,6 +10,7 @@ from pathlib import Path
 from openpyxl import load_workbook
 
 from config import VERTICALS
+from keyword_rules import validate_keyword_library, validate_product_keyword
 
 
 SOURCE = Path("/Users/admin/Desktop/Sunzone-IndiaMART-Product-Keywords.xlsx")
@@ -37,6 +38,7 @@ def build() -> dict[str, dict[str, list[str]]]:
     )
     globally_seen: set[str] = set()
     discovered: set[tuple[str, str]] = set()
+    rejected_by_route: dict[tuple[str, str], int] = defaultdict(int)
 
     for product, keyword, vertical in sheet.iter_rows(min_row=2, values_only=True):
         product_name = normalize(product)
@@ -46,6 +48,14 @@ def build() -> dict[str, dict[str, list[str]]]:
         if route not in expected or not phrase:
             continue
         discovered.add(route)
+        valid, _ = validate_product_keyword(
+            vertical_name,
+            product_name,
+            phrase,
+        )
+        if not valid:
+            rejected_by_route[route] += 1
+            continue
         key = phrase.casefold()
         if key in globally_seen:
             continue
@@ -56,10 +66,21 @@ def build() -> dict[str, dict[str, list[str]]]:
     if missing:
         raise ValueError(f"Master workbook is missing configured products: {missing}")
 
-    return {
+    library = {
         vertical: dict(products)
         for vertical, products in routed.items()
     }
+    errors = validate_keyword_library(library)
+    if errors:
+        raise ValueError(
+            "Generated library failed validation: " + "; ".join(errors[:10])
+        )
+
+    rejected_total = sum(rejected_by_route.values())
+    print(f"Rejected mismatched or ambiguous keywords: {rejected_total}")
+    for (vertical, product), count in sorted(rejected_by_route.items()):
+        print(f"  {vertical} / {product}: {count}")
+    return library
 
 
 def main() -> None:

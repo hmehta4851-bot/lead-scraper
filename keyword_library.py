@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 from config import VERTICAL_BUYER_SIGNALS
+from keyword_rules import validate_keyword_library
 
 LIBRARY_PATH = Path(__file__).with_name("keyword_library.json")
 _LIBRARY_CACHE = None
@@ -27,6 +28,13 @@ def load_keyword_library() -> dict[str, dict[str, list[str]]]:
         }
         for vertical, products in data.items()
     }
+    errors = validate_keyword_library(_LIBRARY_CACHE)
+    if errors:
+        preview = "; ".join(errors[:5])
+        raise ValueError(
+            f"keyword_library.json failed product routing validation "
+            f"({len(errors)} errors): {preview}"
+        )
     return _LIBRARY_CACHE
 
 

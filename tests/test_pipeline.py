@@ -8,8 +8,10 @@ import main
 from config import MAX_LEADS_PER_SOURCE_PER_VERTICAL, VERTICALS, iter_products
 from keyword_library import (
     add_buyer_intent,
+    load_keyword_library,
     select_rotating_keywords,
 )
+from keyword_rules import validate_keyword_library, validate_product_keyword
 from state import complete_city_batch, get_scheduled_city
 from qualification import qualify_lead
 
@@ -101,7 +103,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(len({product for _, _, product, _ in products}), 18)
 
     def test_keyword_library_is_globally_unique_and_complete(self):
-        data = json.loads(Path("keyword_library.json").read_text())
+        data = load_keyword_library()
         keywords = [
             keyword
             for products in data.values()
@@ -110,8 +112,86 @@ class PipelineTests(unittest.TestCase):
         ]
         self.assertEqual(len(data), 8)
         self.assertEqual(sum(map(len, data.values())), 18)
-        self.assertGreaterEqual(len(keywords), 29373)
+        self.assertGreaterEqual(len(keywords), 10000)
         self.assertEqual(len(keywords), len({k.casefold() for k in keywords}))
+        self.assertEqual(validate_keyword_library(data), [])
+
+    def test_cross_product_keywords_fail_closed(self):
+        cases = [
+            (
+                "Powerful",
+                "Gym Rubber Tiles / Laminate Tiles / Mats",
+                "25mm playground rubber tile",
+            ),
+            (
+                "Sports Equipment",
+                "Sports Equipment / Turnkey Facility",
+                "30mm rubber flooring",
+            ),
+            (
+                "Joyful",
+                "PVC / Vinyl Badminton Flooring",
+                "badminton wooden flooring",
+            ),
+        ]
+        for vertical, product, keyword in cases:
+            valid, _ = validate_product_keyword(vertical, product, keyword)
+            self.assertFalse(valid)
+
+    def test_exact_product_keywords_are_accepted(self):
+        cases = [
+            (
+                "Playful",
+                "EPDM Playground / Wet Pour Flooring",
+                "15mm EPDM playground flooring",
+            ),
+            (
+                "Graceful",
+                "Artificial Cricket Pitch / Cricket Turf",
+                "artificial cricket pitch project",
+            ),
+            (
+                "Powerful",
+                "Gym Astro Turf / Sled Track Turf",
+                "custom gym turf sled track",
+            ),
+            (
+                "Sports Equipment",
+                "Sports Equipment / Turnkey Facility",
+                "academy basketball pole",
+            ),
+        ]
+        for vertical, product, keyword in cases:
+            valid, reason = validate_product_keyword(
+                vertical,
+                product,
+                keyword,
+            )
+            self.assertTrue(valid, reason)
+
+    def test_unknown_keyword_route_is_rejected(self):
+        valid, reason = validate_product_keyword(
+            "Powerful",
+            "Unconfigured Product",
+            "gym flooring",
+        )
+        self.assertFalse(valid)
+        self.assertIn("no product keyword rule", reason)
+
+        data = load_keyword_library()
+        data = {
+            vertical: {
+                product: list(keywords)
+                for product, keywords in products.items()
+            }
+            for vertical, products in data.items()
+        }
+        data["Powerful"]["Unconfigured Product"] = ["gym flooring"] * 200
+        errors = validate_keyword_library(data)
+        self.assertTrue(
+            any("unknown route: Powerful / Unconfigured Product" in error
+                for error in errors)
+        )
 
     def test_keyword_rotation_uses_independent_product_cursor(self):
         selected, next_cursor = select_rotating_keywords(
