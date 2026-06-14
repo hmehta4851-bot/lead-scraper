@@ -11,8 +11,6 @@ jobs:
   preflight:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      TMPDIR: ${{ runner.temp }}/sunzone-private-tmp
 
     steps:
       - name: Checkout repo
@@ -25,8 +23,10 @@ jobs:
 
       - name: Prepare private temporary directory
         run: |
-          mkdir -p "$TMPDIR"
-          chmod 700 "$TMPDIR"
+          private_tmp="$RUNNER_TEMP/sunzone-private-tmp"
+          mkdir -p "$private_tmp"
+          chmod 700 "$private_tmp"
+          echo "TMPDIR=$private_tmp" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
