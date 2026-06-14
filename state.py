@@ -46,10 +46,30 @@ def get_scheduled_city(state, cities, run_date):
     return cities[int(state.get("city_index", 0)) % len(cities)]
 
 
+def get_batch_start_index(state, cities, run_date):
+    """Resume today's incomplete batch without changing tomorrow's rotation."""
+    current_index = int(state.get("city_index", 0)) % len(cities)
+    if state.get("last_run_date") != str(run_date):
+        return current_index
+    consumed = max(1, int(state.get("last_run_city_count", 1)))
+    return (current_index - consumed) % len(cities)
+
+
 def complete_city_batch(state, cities, run_date, used_cities):
     """Advance past every town included in today's combined lead batch."""
     run_date = str(run_date)
     if state.get("last_run_date") == run_date:
+        previous_consumed = max(1, int(state.get("last_run_city_count", 1)))
+        consumed = max(previous_consumed, len(used_cities))
+        additional = consumed - previous_consumed
+        if additional:
+            state["city_index"] = (
+                int(state.get("city_index", 0)) + additional
+            ) % len(cities)
+        if used_cities:
+            state["last_run_cities"] = list(used_cities)
+            state["last_run_city"] = used_cities[0]
+        state["last_run_city_count"] = consumed
         save_state(state)
         return state
     consumed = max(1, len(used_cities))

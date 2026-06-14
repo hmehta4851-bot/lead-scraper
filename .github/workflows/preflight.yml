@@ -1,19 +1,16 @@
-name: Sunzone Prospect Flow - Protected Sheet Reset
+name: Sunzone Prospect Flow - Readiness Check
 
 on:
-  workflow_dispatch:   # manual trigger only
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  workflow_dispatch:
 
 permissions:
   contents: read
   id-token: write
 
 jobs:
-  clear:
+  preflight:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       TMPDIR: ${{ runner.temp }}/sunzone-private-tmp
 
@@ -40,5 +37,8 @@ jobs:
           workload_identity_provider: "projects/505761337329/locations/global/workloadIdentityPools/github-actions/providers/github-actions"
           service_account: "lead-scraper@turnkey-pottery-499205-u2.iam.gserviceaccount.com"
 
-      - name: Clear all sheet tabs
-        run: python clear_sheet.py
+      - name: Verify production readiness
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python preflight.py

@@ -20,17 +20,24 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    env:
+      TMPDIR: ${{ runner.temp }}/sunzone-private-tmp
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
+
+      - name: Prepare private temporary directory
+        run: |
+          mkdir -p "$TMPDIR"
+          chmod 700 "$TMPDIR"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -39,10 +46,16 @@ jobs:
         run: python -m playwright install chromium --with-deps
 
       - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
         with:
           workload_identity_provider: "projects/505761337329/locations/global/workloadIdentityPools/github-actions/providers/github-actions"
           service_account: "lead-scraper@turnkey-pottery-499205-u2.iam.gserviceaccount.com"
+
+      - name: Run production readiness preflight
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python preflight.py
 
       - name: Run Sunzone Prospect Flow
         id: run_scraper
@@ -62,8 +75,7 @@ jobs:
           fi
           set -e
           if [ "$status" -eq 2 ]; then
-            echo "Town batch completed with verified lead shortfalls; see quota report."
-            exit 0
+            echo "Verified quota shortfall — automatic recovery is required."
           fi
           exit "$status"
 

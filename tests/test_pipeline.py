@@ -12,7 +12,11 @@ from keyword_library import (
     select_rotating_keywords,
 )
 from keyword_rules import validate_keyword_library, validate_product_keyword
-from state import complete_city_batch, get_scheduled_city
+from state import (
+    complete_city_batch,
+    get_batch_start_index,
+    get_scheduled_city,
+)
 from qualification import qualify_lead
 
 
@@ -459,6 +463,47 @@ class PipelineTests(unittest.TestCase):
             )
             self.assertEqual(state["city_index"], 0)
             self.assertEqual(state["rotation_cycle"], 2)
+
+    def test_incomplete_same_day_retry_resumes_original_batch(self):
+        state = {
+            "city_index": 5,
+            "last_run_date": "2026-06-15",
+            "last_run_city": "City 3",
+            "last_run_city_count": 2,
+        }
+        cities = [f"City {index}" for index in range(10)]
+        self.assertEqual(
+            get_batch_start_index(state, cities, "2026-06-15"),
+            3,
+        )
+        self.assertEqual(
+            get_batch_start_index(state, cities, "2026-06-16"),
+            5,
+        )
+
+    def test_same_day_recovery_advances_only_newly_added_towns(self):
+        state = {
+            "city_index": 5,
+            "last_run_date": "2026-06-15",
+            "last_run_city": "City 3",
+            "last_run_cities": ["City 3", "City 4"],
+            "last_run_city_count": 2,
+            "rotation_cycle": 1,
+        }
+        cities = [f"City {index}" for index in range(10)]
+        with patch("state.save_state", return_value=None):
+            complete_city_batch(
+                state,
+                cities,
+                "2026-06-15",
+                ["City 3", "City 4", "City 5", "City 6"],
+            )
+        self.assertEqual(state["city_index"], 7)
+        self.assertEqual(state["last_run_city_count"], 4)
+        self.assertEqual(
+            get_batch_start_index(state, cities, "2026-06-15"),
+            3,
+        )
 
     def test_small_town_batch_advances_past_every_used_town(self):
         state = {

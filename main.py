@@ -48,7 +48,13 @@ from scrapers import (
 )
 from scrapers import browser as scraper_browser
 from sheets import append_leads, load_daily_snapshot
-from state import complete_city_batch, get_scheduled_city, load_state, save_state
+from state import (
+    complete_city_batch,
+    get_batch_start_index,
+    get_scheduled_city,
+    load_state,
+    save_state,
+)
 
 
 SOURCE_REGISTRY = (
@@ -368,13 +374,12 @@ def main() -> int:
     try:
         state = load_state()
         run_date = date.today()
-        if state.get("last_run_date") == str(run_date):
-            print(
-                f"Today's city batch is already complete: "
-                f"{', '.join(state.get('last_run_cities') or [state.get('last_run_city', '')])}"
-            )
-            return 0
-        start_index = int(state.get("city_index", 0)) % len(INDIA_CITY_ROTATION)
+        same_day_retry = state.get("last_run_date") == str(run_date)
+        start_index = get_batch_start_index(
+            state,
+            INDIA_CITY_ROTATION,
+            run_date,
+        )
         city = get_scheduled_city(state, INDIA_CITY_ROTATION, run_date)
         products = list(iter_products())
         products_by_vertical: dict[str, list[tuple[str, str, list[str]]]] = {}
@@ -415,6 +420,24 @@ def main() -> int:
             vertical: Counter(snapshot_source_counts.get(vertical, {}))
             for vertical in products_by_vertical
         }
+        if same_day_retry and vertical_quotas_met(
+            vertical_counts,
+            products_by_vertical,
+        ):
+            completed_cities = (
+                state.get("last_run_cities")
+                or [state.get("last_run_city") or city]
+            )
+            print(
+                f"Today's city batch is already complete: "
+                f"{', '.join(completed_cities)}"
+            )
+            return 0
+        if same_day_retry:
+            print(
+                "[RECOVERY] Resuming today's incomplete city batch from "
+                "the existing Google Sheet counts."
+            )
         print(
             f"[SHEET] Loaded {len(existing_phones)} existing phone numbers "
             "for global duplicate protection"
