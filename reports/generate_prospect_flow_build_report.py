@@ -245,7 +245,7 @@ story.extend([
     Spacer(1, 14 * mm),
     table([
         ["Purpose", "Build a repeatable daily pipeline of qualified B2B prospects"],
-        ["Product scope", "18 products organised under 8 Sunzone verticals"],
+        ["Product scope", "170 SKU/system records routed through 18 buying families and 8 verticals"],
         ["Search scope", "11 independent public lead sources"],
         ["Keyword intelligence", "20,166 validated product-specific search phrases"],
         ["Geographic scope", "7,705 Indian cities and towns"],
@@ -331,7 +331,8 @@ story.extend([
     table([
         ["Verified component", "Current production quantity"],
         ["Sunzone product verticals", "8"],
-        ["Exact products", "18"],
+        ["Buyer-search families", "18"],
+        ["Routed SKU and named system records", "170"],
         ["Approved unique keyword phrases", "20,166"],
         ["Ambiguous phrases removed during validation", "9,207"],
         ["Minimum validated phrases available to each product", "356"],
@@ -591,9 +592,9 @@ story.extend(section(
 story.extend([
     table([
         ["Verification area", "Confirmed result"],
-        ["Automated code tests", "37 passing"],
+        ["Automated code tests", "38 passing"],
         ["Vertical configuration", "8 verticals"],
-        ["Product configuration", "18 products"],
+        ["Product configuration", "18 search families and 170 routed SKU/system records"],
         ["Source registry", "11 lead sources"],
         ["City catalogue", "7,705 unique towns"],
         ["Maharashtra-first invariant", "509 Maharashtra towns beginning with Mumbai"],

@@ -18,6 +18,12 @@ from state import (
     get_scheduled_city,
 )
 from qualification import qualify_lead
+from sku_catalog import (
+    format_sku_target,
+    load_sku_catalog,
+    select_rotating_sku,
+    validate_sku_routes,
+)
 
 
 class PipelineTests(unittest.TestCase):
@@ -88,7 +94,7 @@ class PipelineTests(unittest.TestCase):
             )
         )
 
-    def test_vertical_catalog_is_complete(self):
+    def test_vertical_and_sku_catalogs_are_complete(self):
         self.assertEqual(
             set(VERTICALS),
             {
@@ -105,6 +111,56 @@ class PipelineTests(unittest.TestCase):
         products = list(iter_products())
         self.assertEqual(len(products), 18)
         self.assertEqual(len({product for _, _, product, _ in products}), 18)
+        skus = load_sku_catalog()
+        self.assertEqual(len(skus), 170)
+        self.assertEqual(
+            sum(record["catalogue_type"] == "SKU" for record in skus),
+            152,
+        )
+        self.assertEqual(
+            sum(
+                record["catalogue_type"] == "Website system"
+                for record in skus
+            ),
+            18,
+        )
+        self.assertEqual(validate_sku_routes(VERTICALS), [])
+        self.assertEqual(
+            {record["vertical"] for record in skus},
+            set(VERTICALS),
+        )
+        covered_families = {
+            (record["vertical"], record["search_family"])
+            for record in skus
+        }
+        expected_families = {
+            (vertical, product)
+            for vertical, config in VERTICALS.items()
+            for product in config["products"]
+        }
+        self.assertEqual(covered_families, expected_families)
+
+    def test_sku_rotation_stays_inside_product_family(self):
+        cursors = {}
+        first = select_rotating_sku(
+            "Powerful",
+            "Gym Astro Turf / Sled Track Turf",
+            cursors,
+        )
+        second = select_rotating_sku(
+            "Powerful",
+            "Gym Astro Turf / Sled Track Turf",
+            cursors,
+        )
+        self.assertEqual(first["vertical"], "Powerful")
+        self.assertEqual(
+            first["search_family"],
+            "Gym Astro Turf / Sled Track Turf",
+        )
+        self.assertNotEqual(first["display_name"], second["display_name"])
+        label = format_sku_target(first)
+        self.assertIn(first["search_family"], label)
+        self.assertIn(f"SKU target: {first['display_name']}", label)
 
     def test_rotation_completes_maharashtra_before_other_states(self):
         maharashtra = [

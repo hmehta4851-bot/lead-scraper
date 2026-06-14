@@ -1,0 +1,1536 @@
+{
+  "source": "Sunzone verified Zoho catalogue and sunzone.in systems",
+  "sku_count": 170,
+  "skus": [
+    {
+      "vertical": "Acryplay",
+      "search_family": "Acrylic Sports Court Systems",
+      "item_name": "Gemstone Acrylic Court Series",
+      "sku": "Gemstone Acrylic Court Series",
+      "display_name": "Gemstone Acrylic Court Series",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Acryplay",
+      "search_family": "PP Modular Sports Court Tiles",
+      "item_name": "PP Court Tiles",
+      "sku": "PP Court Tiles",
+      "display_name": "PP Court Tiles",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Artificial Cricket Pitch / Cricket Turf",
+      "item_name": "Artificial Grass",
+      "sku": "10Mm - Cricket Turf - 8800Dtex - Green",
+      "display_name": "Artificial Grass - 10Mm - Cricket Turf - 8800Dtex - Green",
+      "source_url": "https://www.sunzone.in/cricket-tennis-turf",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Artificial Grass / Landscape Turf",
+      "item_name": "Landscape Artificial Grass",
+      "sku": "Landscape Artificial Grass",
+      "display_name": "Landscape Artificial Grass",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "FIH Hockey Turf",
+      "item_name": "Artificial Grass",
+      "sku": "13Mm - Fih Global Hockey Turf - Blue",
+      "display_name": "Artificial Grass - 13Mm - Fih Global Hockey Turf - Blue",
+      "source_url": "https://www.sunzone.in/hockey-turf-global",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "FIH Hockey Turf",
+      "item_name": "Artificial Grass",
+      "sku": "13Mm - Fih Global Hockey Turf - Green",
+      "display_name": "Artificial Grass - 13Mm - Fih Global Hockey Turf - Green",
+      "source_url": "https://www.sunzone.in/hockey-turf-global",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "FIH Hockey Turf",
+      "item_name": "Artificial Grass",
+      "sku": "13Mm - Fih Global Hockey Turf - Red",
+      "display_name": "Artificial Grass - 13Mm - Fih Global Hockey Turf - Red",
+      "source_url": "https://www.sunzone.in/hockey-turf-global",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "FIH Hockey Turf",
+      "item_name": "Artificial Grass",
+      "sku": "13Mm - Fih Global Hockey Turf - White",
+      "display_name": "Artificial Grass - 13Mm - Fih Global Hockey Turf - White",
+      "source_url": "https://www.sunzone.in/hockey-turf-global",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "FIH Hockey Turf",
+      "item_name": "Artificial Grass",
+      "sku": "13Mm Paris Gt Zero - Global - Blue",
+      "display_name": "Artificial Grass - 13Mm Paris Gt Zero - Global - Blue",
+      "source_url": "https://www.sunzone.in/hockey-turf-global",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "FIH Hockey Turf",
+      "item_name": "Artificial Grass",
+      "sku": "13Mm Paris Gt Zero - Global - Green",
+      "display_name": "Artificial Grass - 13Mm Paris Gt Zero - Global - Green",
+      "source_url": "https://www.sunzone.in/hockey-turf-global",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "FIH Hockey Turf",
+      "item_name": "Artificial Grass",
+      "sku": "13Mm Paris Gt Zero - Global - Red",
+      "display_name": "Artificial Grass - 13Mm Paris Gt Zero - Global - Red",
+      "source_url": "https://www.sunzone.in/hockey-turf-global",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "FIH Hockey Turf",
+      "item_name": "Artificial Grass",
+      "sku": "18Mm - Fih National Hockey Turf - Blue",
+      "display_name": "Artificial Grass - 18Mm - Fih National Hockey Turf - Blue",
+      "source_url": "https://www.sunzone.in/hockey-turf-national",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "FIH Hockey Turf",
+      "item_name": "Artificial Grass",
+      "sku": "18Mm - Fih National Hockey Turf - Green",
+      "display_name": "Artificial Grass - 18Mm - Fih National Hockey Turf - Green",
+      "source_url": "https://www.sunzone.in/hockey-turf-national",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "FIH Hockey Turf",
+      "item_name": "Artificial Grass",
+      "sku": "18Mm - Fih National Hockey Turf - Red",
+      "display_name": "Artificial Grass - 18Mm - Fih National Hockey Turf - Red",
+      "source_url": "https://www.sunzone.in/hockey-turf-national",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "FIH Hockey Turf",
+      "item_name": "Artificial Grass",
+      "sku": "18Mm - Fih National Hockey Turf - White",
+      "display_name": "Artificial Grass - 18Mm - Fih National Hockey Turf - White",
+      "source_url": "https://www.sunzone.in/hockey-turf-national",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "12000Dtex - Diamond Turf - 50Mm - Dual Tone",
+      "display_name": "Artificial Grass - 12000Dtex - Diamond Turf - 50Mm - Dual Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-fuerte",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "12000Dtex - Diamond Turf - 50Mm - Single Tone",
+      "display_name": "Artificial Grass - 12000Dtex - Diamond Turf - 50Mm - Single Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-fuerte",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "14000Dtex - Super Turf - 50Mm - Dual Tone",
+      "display_name": "Artificial Grass - 14000Dtex - Super Turf - 50Mm - Dual Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-super",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "14000Dtex - Super Turf - 50Mm - Single Tone",
+      "display_name": "Artificial Grass - 14000Dtex - Super Turf - 50Mm - Single Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-super",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "16000Dtex - Nature Turf - 50Mm - Dual Tone",
+      "display_name": "Artificial Grass - 16000Dtex - Nature Turf - 50Mm - Dual Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-nature",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "16000Dtex - Nature Turf - 50Mm - Single Tone",
+      "display_name": "Artificial Grass - 16000Dtex - Nature Turf - 50Mm - Single Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-nature",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "20000Dtex - Hybrid Turf - 50Mm - Dual Tone",
+      "display_name": "Artificial Grass - 20000Dtex - Hybrid Turf - 50Mm - Dual Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-hybrid",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "20000Dtex - Hybrid Turf - 50Mm - Single Tone",
+      "display_name": "Artificial Grass - 20000Dtex - Hybrid Turf - 50Mm - Single Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-hybrid",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "20000Dtex - Hybrid Turf - 60Mm - Dual Tone",
+      "display_name": "Artificial Grass - 20000Dtex - Hybrid Turf - 60Mm - Dual Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-hybrid",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "20000Dtex - Hybrid Turf - 60Mm - Single Tone",
+      "display_name": "Artificial Grass - 20000Dtex - Hybrid Turf - 60Mm - Single Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-hybrid",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "30Mm - White Turf",
+      "display_name": "Artificial Grass - 30Mm - White Turf",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-fuerte",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "40Mm Sea Turf - FIFA",
+      "display_name": "Artificial Grass - 40Mm Sea Turf - FIFA",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-fuerte",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "50Mm - White Turf",
+      "display_name": "Artificial Grass - 50Mm - White Turf",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-fuerte",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "50Mm - Yellow Turf",
+      "display_name": "Artificial Grass - 50Mm - Yellow Turf",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-fuerte",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "50Mm Fuerte D50 Pro - FIFA/FIH/Rugby",
+      "display_name": "Artificial Grass - 50Mm Fuerte D50 Pro - FIFA/FIH/Rugby",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-fuerte",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "50Mm Nature - FIFA Quality",
+      "display_name": "Artificial Grass - 50Mm Nature - FIFA Quality",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-nature",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "50Mm Super - FIFA Quality",
+      "display_name": "Artificial Grass - 50Mm Super - FIFA Quality",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-super",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "52Mm - Liga Turf Legend Pro - Dual Tone",
+      "display_name": "Artificial Grass - 52Mm - Liga Turf Legend Pro - Dual Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-fuerte",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "52Mm - Liga Turf Legend Pro - Single Tone",
+      "display_name": "Artificial Grass - 52Mm - Liga Turf Legend Pro - Single Tone",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-fuerte",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "60Mm - White Turf",
+      "display_name": "Artificial Grass - 60Mm - White Turf",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-fuerte",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Artificial Grass",
+      "sku": "60Mm Hybrid - FIFA Quality",
+      "display_name": "Artificial Grass - 60Mm Hybrid - FIFA Quality",
+      "source_url": "https://www.sunzone.in/football-turf-bellin-hybrid",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Football Turf / Box Cricket Turnkey",
+      "item_name": "Box Cricket Turnkey",
+      "sku": "Box Cricket Turnkey",
+      "display_name": "Box Cricket Turnkey",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "12Mm - Tennis Turf - Green",
+      "display_name": "Artificial Grass - 12Mm - Tennis Turf - Green",
+      "source_url": "https://www.sunzone.in/cricket-tennis-turf",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "13500Dtex - Nf Eco Turf - 30Mm - Dual Tone",
+      "display_name": "Artificial Grass - 13500Dtex - Nf Eco Turf - 30Mm - Dual Tone",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-non-infill",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "13500Dtex - Nf Eco Turf - 30Mm - Single Tone",
+      "display_name": "Artificial Grass - 13500Dtex - Nf Eco Turf - 30Mm - Single Tone",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-non-infill",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "15Mm - Multisport - Blue (5500Dtex)",
+      "display_name": "Artificial Grass - 15Mm - Multisport - Blue (5500Dtex)",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-15mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "15Mm - Multisport - Dark Green (5500Dtex)",
+      "display_name": "Artificial Grass - 15Mm - Multisport - Dark Green (5500Dtex)",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-15mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "15Mm - Multisport - Golf Green (6000Dtex)",
+      "display_name": "Artificial Grass - 15Mm - Multisport - Golf Green (6000Dtex)",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-15mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "15Mm - Multisport - Light Green (5500Dtex)",
+      "display_name": "Artificial Grass - 15Mm - Multisport - Light Green (5500Dtex)",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-15mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "15Mm - Multisport - Red (5500Dtex)",
+      "display_name": "Artificial Grass - 15Mm - Multisport - Red (5500Dtex)",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-15mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "15Mm - Multisport - White (5500Dtex)",
+      "display_name": "Artificial Grass - 15Mm - Multisport - White (5500Dtex)",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-15mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "15Mm - Multisport Premium - Hockey Green (7600Dtex)",
+      "display_name": "Artificial Grass - 15Mm - Multisport Premium - Hockey Green (7600Dtex)",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-15mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "15Mm - Turf Track - Blue (7600Dtex)",
+      "display_name": "Artificial Grass - 15Mm - Turf Track - Blue (7600Dtex)",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-15mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "15Mm - Turf Track - Red (7600Dtex)",
+      "display_name": "Artificial Grass - 15Mm - Turf Track - Red (7600Dtex)",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-15mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "18000Dtex - Nf Hybrid Turf - 30Mm - Blue",
+      "display_name": "Artificial Grass - 18000Dtex - Nf Hybrid Turf - 30Mm - Blue",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-non-infill",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "18000Dtex - Nf Hybrid Turf - 30Mm - Dual Tone",
+      "display_name": "Artificial Grass - 18000Dtex - Nf Hybrid Turf - 30Mm - Dual Tone",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-non-infill",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "18000Dtex - Nf Hybrid Turf - 30Mm - Red",
+      "display_name": "Artificial Grass - 18000Dtex - Nf Hybrid Turf - 30Mm - Red",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-non-infill",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "18000Dtex - Nf Hybrid Turf - 30Mm - Single Tone",
+      "display_name": "Artificial Grass - 18000Dtex - Nf Hybrid Turf - 30Mm - Single Tone",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-non-infill",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "18Mm - Multisport - Blue",
+      "display_name": "Artificial Grass - 18Mm - Multisport - Blue",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-18mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "18Mm - Multisport - Green",
+      "display_name": "Artificial Grass - 18Mm - Multisport - Green",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-18mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "18Mm - Multisport - Red",
+      "display_name": "Artificial Grass - 18Mm - Multisport - Red",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-18mm",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Artificial Grass",
+      "sku": "30Mm - Nf Eco - FIFA Basic",
+      "display_name": "Artificial Grass - 30Mm - Nf Eco - FIFA Basic",
+      "source_url": "https://www.sunzone.in/multi-sports-turf-non-infill",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Multi-Sport Turf / Tennis Turf / Padel Turf",
+      "item_name": "Padel Turf",
+      "sku": "Padel Turf",
+      "display_name": "Padel Turf",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Turf Accessories",
+      "item_name": "PU Adhesive",
+      "sku": "Polytan Turf - Super Glue",
+      "display_name": "PU Adhesive - Polytan Turf - Super Glue",
+      "source_url": "https://www.sunzone.in/mapei-adhesive-tape",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Turf Accessories",
+      "item_name": "PU Adhesive",
+      "sku": "Ultrabond Turf 2 Stars Pro PU 2K",
+      "display_name": "PU Adhesive - Ultrabond Turf 2 Stars Pro PU 2K",
+      "source_url": "https://www.sunzone.in/mapei-adhesive-tape",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Turf Accessories",
+      "item_name": "SBR Granules",
+      "sku": "SBR Granules",
+      "display_name": "SBR Granules - SBR Granules",
+      "source_url": "https://www.sunzone.in/turf-in-fills",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Turf Accessories",
+      "item_name": "Seam Tape",
+      "sku": "Seam Tape",
+      "display_name": "Seam Tape - Seam Tape",
+      "source_url": "https://www.sunzone.in/mapei-adhesive-tape",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Turf Accessories",
+      "item_name": "Shockpad",
+      "sku": "10Mm Cast Instu SBR Shockpad",
+      "display_name": "Shockpad - 10Mm Cast Instu SBR Shockpad",
+      "source_url": "https://www.sunzone.in/turf-shockpad",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Turf Accessories",
+      "item_name": "Shockpad",
+      "sku": "10Mm Shockpad - 50000 Density",
+      "display_name": "Shockpad - 10Mm Shockpad - 50000 Density",
+      "source_url": "https://www.sunzone.in/turf-shockpad",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Turf Accessories",
+      "item_name": "Shockpad",
+      "sku": "10Mm Shockpad - 70000 Density",
+      "display_name": "Shockpad - 10Mm Shockpad - 70000 Density",
+      "source_url": "https://www.sunzone.in/turf-shockpad",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Turf Accessories",
+      "item_name": "Shockpad",
+      "sku": "15Mm Cast Instu SBR Shockpad",
+      "display_name": "Shockpad - 15Mm Cast Instu SBR Shockpad",
+      "source_url": "https://www.sunzone.in/turf-shockpad",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Turf Accessories",
+      "item_name": "Shockpad",
+      "sku": "8Mm Cast Instu SBR Shockpad",
+      "display_name": "Shockpad - 8Mm Cast Instu SBR Shockpad",
+      "source_url": "https://www.sunzone.in/turf-shockpad",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Graceful",
+      "search_family": "Turf Accessories",
+      "item_name": "Silica Sand",
+      "sku": "Silica Sand",
+      "display_name": "Silica Sand - Silica Sand",
+      "source_url": "https://www.sunzone.in/turf-in-fills",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 4.5Mm",
+      "sku": "Mapel Wood St-88019",
+      "display_name": "PVC Sports Flooring 4.5Mm - Mapel Wood St-88019",
+      "source_url": "https://www.sunzone.in/wooden-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 5 Mm",
+      "sku": "Badminton court (Play +)",
+      "display_name": "PVC Sports Flooring 5 Mm - Badminton court (Play +)",
+      "source_url": "https://www.sunzone.in/play-plus",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 5.5Mm",
+      "sku": "Badminton court (Power +)",
+      "display_name": "PVC Sports Flooring 5.5Mm - Badminton court (Power +)",
+      "source_url": "https://www.sunzone.in/power-plus",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 5.5Mm",
+      "sku": "SportzGuard",
+      "display_name": "PVC Sports Flooring 5.5Mm - SportzGuard",
+      "source_url": "https://www.sunzone.in/power-plus",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 6 Mm",
+      "sku": "Maple Wood St-88019",
+      "display_name": "PVC Sports Flooring 6 Mm - Maple Wood St-88019",
+      "source_url": "https://www.sunzone.in/wooden-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 7.2Mm",
+      "sku": "Badminton court (Champion +)",
+      "display_name": "PVC Sports Flooring 7.2Mm - Badminton court (Champion +)",
+      "source_url": "https://www.sunzone.in/champion-plus",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 8Mm",
+      "sku": "Blue S80-6857",
+      "display_name": "PVC Sports Flooring 8Mm - Blue S80-6857",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 8Mm",
+      "sku": "Green S80-6830",
+      "display_name": "PVC Sports Flooring 8Mm - Green S80-6830",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 8Mm",
+      "sku": "Grey S80-6872",
+      "display_name": "PVC Sports Flooring 8Mm - Grey S80-6872",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 8Mm",
+      "sku": "Maple S80-8809",
+      "display_name": "PVC Sports Flooring 8Mm - Maple S80-8809",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 8Mm",
+      "sku": "Ocean Blue S80-6858",
+      "display_name": "PVC Sports Flooring 8Mm - Ocean Blue S80-6858",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 8Mm",
+      "sku": "Orange S80-6829",
+      "display_name": "PVC Sports Flooring 8Mm - Orange S80-6829",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 8Mm",
+      "sku": "Pink S80-6832",
+      "display_name": "PVC Sports Flooring 8Mm - Pink S80-6832",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "PVC Sports Flooring 8Mm",
+      "sku": "Red S80-6820",
+      "display_name": "PVC Sports Flooring 8Mm - Red S80-6820",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Shockpad",
+      "sku": "5 mm - Badminton",
+      "display_name": "Shockpad - 5 mm - Badminton",
+      "source_url": "https://www.sunzone.in/power-shockpad",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Welding Line",
+      "sku": "Blue St-68022",
+      "display_name": "Welding Line - Blue St-68022",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Welding Line",
+      "sku": "Green St-68030",
+      "display_name": "Welding Line - Green St-68030",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Welding Line",
+      "sku": "Grey St-68080",
+      "display_name": "Welding Line - Grey St-68080",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Welding Line",
+      "sku": "Maepl Wood St-88019",
+      "display_name": "Welding Line - Maepl Wood St-88019",
+      "source_url": "https://www.sunzone.in/wooden-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Welding Line",
+      "sku": "Oak Wood St-88010",
+      "display_name": "Welding Line - Oak Wood St-88010",
+      "source_url": "https://www.sunzone.in/wooden-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Welding Line",
+      "sku": "Ocean Blue St-6858",
+      "display_name": "Welding Line - Ocean Blue St-6858",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Welding Line",
+      "sku": "Orange St-68023",
+      "display_name": "Welding Line - Orange St-68023",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Welding Line",
+      "sku": "Pink St-6832",
+      "display_name": "Welding Line - Pink St-6832",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Welding Line",
+      "sku": "Red St-68020",
+      "display_name": "Welding Line - Red St-68020",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Welding Line",
+      "sku": "Yellow",
+      "display_name": "Welding Line - Yellow",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Joyful",
+      "search_family": "PVC / Vinyl Badminton Flooring",
+      "item_name": "Welding Rod",
+      "sku": "Bwf",
+      "display_name": "Welding Rod - Bwf",
+      "source_url": "https://www.sunzone.in/glory-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "Crumb Rubber",
+      "sku": "Rubber Buffing",
+      "display_name": "Crumb Rubber - Rubber Buffing",
+      "source_url": "https://www.sunzone.in/base-layer-granules",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "0.5-1.5Mm Maroon Red -G01",
+      "display_name": "EPDM Granules - 0.5-1.5Mm Maroon Red -G01",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Apple Green 91",
+      "display_name": "EPDM Granules - Apple Green 91",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Ash 82",
+      "display_name": "EPDM Granules - Ash 82",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Beige 93",
+      "display_name": "EPDM Granules - Beige 93",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Bright Orange 104",
+      "display_name": "EPDM Granules - Bright Orange 104",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Bright Red 96",
+      "display_name": "EPDM Granules - Bright Red 96",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Brown 89",
+      "display_name": "EPDM Granules - Brown 89",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Cream98",
+      "display_name": "EPDM Granules - Cream98",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Denim 124",
+      "display_name": "EPDM Granules - Denim 124",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Earth Yellow 88",
+      "display_name": "EPDM Granules - Earth Yellow 88",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Eggshell 94",
+      "display_name": "EPDM Granules - Eggshell 94",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Forest Green 90",
+      "display_name": "EPDM Granules - Forest Green 90",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Graphite 87",
+      "display_name": "EPDM Granules - Graphite 87",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Jungle 125",
+      "display_name": "EPDM Granules - Jungle 125",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Light Blue 85",
+      "display_name": "EPDM Granules - Light Blue 85",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Navy Blue 109",
+      "display_name": "EPDM Granules - Navy Blue 109",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Olive 118",
+      "display_name": "EPDM Granules - Olive 118",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Pace",
+      "display_name": "EPDM Granules - Pace",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Play Brick 128",
+      "display_name": "EPDM Granules - Play Brick 128",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Purple 92",
+      "display_name": "EPDM Granules - Purple 92",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Red 80",
+      "display_name": "EPDM Granules - Red 80",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Royal Blue 126",
+      "display_name": "EPDM Granules - Royal Blue 126",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Sakura 127",
+      "display_name": "EPDM Granules - Sakura 127",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Tea Green 108",
+      "display_name": "EPDM Granules - Tea Green 108",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Teal 100",
+      "display_name": "EPDM Granules - Teal 100",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "White 95",
+      "display_name": "EPDM Granules - White 95",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "EPDM Granules",
+      "sku": "Yellow 83",
+      "display_name": "EPDM Granules - Yellow 83",
+      "source_url": "https://www.sunzone.in/ecolastic-play",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Granules / SBR Granules / PU Binder",
+      "item_name": "PU Binder",
+      "sku": "BASF Elastan 8004- KC",
+      "display_name": "PU Binder - BASF Elastan 8004- KC",
+      "source_url": "https://www.sunzone.in/pu-binders-basf",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Playground / Wet Pour Flooring",
+      "item_name": "Ecolastic Pace",
+      "sku": "Ecolastic Pace",
+      "display_name": "Ecolastic Pace",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Playground / Wet Pour Flooring",
+      "item_name": "Ecolastic Play",
+      "sku": "Ecolastic Play",
+      "display_name": "Ecolastic Play",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Playground / Wet Pour Flooring",
+      "item_name": "Ecolastic Score",
+      "sku": "Ecolastic Score",
+      "display_name": "Ecolastic Score",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Playful",
+      "search_family": "EPDM Playground / Wet Pour Flooring",
+      "item_name": "EPDM System",
+      "sku": "EPDM System",
+      "display_name": "EPDM System",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1001 Red + Black",
+      "display_name": "Gym Astro Turf - Sz 1001 Red + Black",
+      "source_url": "https://powerful-gym-astro-turf.myshopify.com/",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1002 Navy Blue + White",
+      "display_name": "Gym Astro Turf - Sz 1002 Navy Blue + White",
+      "source_url": "https://www.sunzone.in/astro-turf",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1003 Green + White",
+      "display_name": "Gym Astro Turf - Sz 1003 Green + White",
+      "source_url": "https://www.sunzone.in/astro-turf",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1004 Terracotta + White",
+      "display_name": "Gym Astro Turf - Sz 1004 Terracotta + White",
+      "source_url": "https://powerful-gym-astro-turf.myshopify.com/",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1005 Black + White",
+      "display_name": "Gym Astro Turf - Sz 1005 Black + White",
+      "source_url": "https://powerful-gym-astro-turf.myshopify.com/",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1006 Black +Red",
+      "display_name": "Gym Astro Turf - Sz 1006 Black +Red",
+      "source_url": "https://powerful-gym-astro-turf.myshopify.com/",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1006 Red + Black",
+      "display_name": "Gym Astro Turf - Sz 1006 Red + Black",
+      "source_url": "https://powerful-gym-astro-turf.myshopify.com/",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1007 Terracotta + White",
+      "display_name": "Gym Astro Turf - Sz 1007 Terracotta + White",
+      "source_url": "https://www.sunzone.in/astro-turf",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1008 Red + Black",
+      "display_name": "Gym Astro Turf - Sz 1008 Red + Black",
+      "source_url": "https://www.sunzone.in/astro-turf",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1009 Red + Black",
+      "display_name": "Gym Astro Turf - Sz 1009 Red + Black",
+      "source_url": "https://www.sunzone.in/astro-turf",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1010 Green + White",
+      "display_name": "Gym Astro Turf - Sz 1010 Green + White",
+      "source_url": "https://powerful-gym-astro-turf.myshopify.com/",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1012 Red + White",
+      "display_name": "Gym Astro Turf - Sz 1012 Red + White",
+      "source_url": "https://powerful-gym-astro-turf.myshopify.com/",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Astro Turf / Sled Track Turf",
+      "item_name": "Gym Astro Turf",
+      "sku": "Sz 1013 Grey + White",
+      "display_name": "Gym Astro Turf - Sz 1013 Grey + White",
+      "source_url": "https://powerful-gym-astro-turf.myshopify.com/",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym PVC Sports Flooring",
+      "item_name": "Gym PVC Sports Flooring",
+      "sku": "Gym PVC Sports Flooring",
+      "display_name": "Gym PVC Sports Flooring",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Roll Flooring",
+      "item_name": "Gym Rubber Roll",
+      "sku": "10Mm Epdm Sparkled 20% (White)",
+      "display_name": "Gym Rubber Roll - 10Mm Epdm Sparkled 20% (White)",
+      "source_url": "https://www.sunzone.in/gym-rubber-roll-infinity-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Roll Flooring",
+      "item_name": "Gym Rubber Roll",
+      "sku": "6Mm Epdm Sparkled 20%(White)",
+      "display_name": "Gym Rubber Roll - 6Mm Epdm Sparkled 20%(White)",
+      "source_url": "https://www.sunzone.in/gym-rubber-roll-infinity-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Roll Flooring",
+      "item_name": "Gym Rubber Roll",
+      "sku": "8Mm Epdm Sparkled 20%(White)",
+      "display_name": "Gym Rubber Roll - 8Mm Epdm Sparkled 20%(White)",
+      "source_url": "https://www.sunzone.in/gym-rubber-roll-infinity-series",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Gym Mats",
+      "sku": "Gym Mats",
+      "display_name": "Gym Mats",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "10Mm Black",
+      "display_name": "Square Tiles - 10Mm Black",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "10Mm Magenta",
+      "display_name": "Square Tiles - 10Mm Magenta",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "10Mm Peacock Green",
+      "display_name": "Square Tiles - 10Mm Peacock Green",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "10Mm Silver Grey",
+      "display_name": "Square Tiles - 10Mm Silver Grey",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "10Mm Teracotta",
+      "display_name": "Square Tiles - 10Mm Teracotta",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "10Mm Terrazzo",
+      "display_name": "Square Tiles - 10Mm Terrazzo",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "20Mm Black",
+      "display_name": "Square Tiles - 20Mm Black",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "22Mm Black",
+      "display_name": "Square Tiles - 22Mm Black",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "22Mm Silver Grey",
+      "display_name": "Square Tiles - 22Mm Silver Grey",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "22Mm Teracota",
+      "display_name": "Square Tiles - 22Mm Teracota",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "22Mm Terrazzo",
+      "display_name": "Square Tiles - 22Mm Terrazzo",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "25Mm Black",
+      "display_name": "Square Tiles - 25Mm Black",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "25Mm Grey",
+      "display_name": "Square Tiles - 25Mm Grey",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Powerful",
+      "search_family": "Gym Rubber Tiles / Laminate Tiles / Mats",
+      "item_name": "Square Tiles",
+      "sku": "25Mm Teracotta",
+      "display_name": "Square Tiles - 25Mm Teracotta",
+      "source_url": "https://www.sunzone.in/gym-laminate-tiles",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Sports Equipment",
+      "search_family": "Sports Equipment / Turnkey Facility",
+      "item_name": "Garware Net",
+      "sku": "35Mm",
+      "display_name": "Garware Net - 35Mm",
+      "source_url": "https://www.sunzone.in/sport-equipment",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Sports Equipment",
+      "search_family": "Sports Equipment / Turnkey Facility",
+      "item_name": "Garware Net",
+      "sku": "40Mm",
+      "display_name": "Garware Net - 40Mm",
+      "source_url": "https://www.sunzone.in/sport-equipment",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Sports Equipment",
+      "search_family": "Sports Equipment / Turnkey Facility",
+      "item_name": "Garware Net",
+      "sku": "50Mm",
+      "display_name": "Garware Net - 50Mm",
+      "source_url": "https://www.sunzone.in/sport-equipment",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Sports Equipment",
+      "search_family": "Sports Equipment / Turnkey Facility",
+      "item_name": "Netting",
+      "sku": "Netting",
+      "display_name": "Netting - Netting",
+      "source_url": "https://www.sunzone.in/sport-equipment",
+      "catalogue_type": "SKU"
+    },
+    {
+      "vertical": "Sports Equipment",
+      "search_family": "Sports Equipment / Turnkey Facility",
+      "item_name": "Turnkey Sports Equipment",
+      "sku": "Turnkey Sports Equipment",
+      "display_name": "Turnkey Sports Equipment",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Track & Field",
+      "search_family": "Synthetic Athletic Track Systems",
+      "item_name": "Full PUR System",
+      "sku": "Full PUR System",
+      "display_name": "Full PUR System",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Track & Field",
+      "search_family": "Synthetic Athletic Track Systems",
+      "item_name": "Prefabricated Track System",
+      "sku": "Prefabricated Track System",
+      "display_name": "Prefabricated Track System",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Track & Field",
+      "search_family": "Synthetic Athletic Track Systems",
+      "item_name": "PU Spray System",
+      "sku": "PU Spray System",
+      "display_name": "PU Spray System",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Track & Field",
+      "search_family": "Synthetic Athletic Track Systems",
+      "item_name": "Sandwich System",
+      "sku": "Sandwich System",
+      "display_name": "Sandwich System",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Woodplay",
+      "search_family": "Maple / Hevea Wooden Sports Flooring",
+      "item_name": "Hevea Wooden System",
+      "sku": "Hevea Wooden System",
+      "display_name": "Hevea Wooden System",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    },
+    {
+      "vertical": "Woodplay",
+      "search_family": "Maple / Hevea Wooden Sports Flooring",
+      "item_name": "Maple Wooden System",
+      "sku": "Maple Wooden System",
+      "display_name": "Maple Wooden System",
+      "source_url": "https://www.sunzone.in/",
+      "catalogue_type": "Website system"
+    }
+  ]
+}

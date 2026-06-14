@@ -48,6 +48,7 @@ from scrapers import (
 )
 from scrapers import browser as scraper_browser
 from sheets import append_leads, load_daily_snapshot
+from sku_catalog import format_sku_target, select_rotating_sku
 from state import (
     complete_city_batch,
     get_batch_start_index,
@@ -474,6 +475,7 @@ def main() -> int:
         for vertical in products_by_vertical:
             buyer_cursors.setdefault(vertical, 0)
         keyword_cursors = state.setdefault("keyword_cursors", {})
+        sku_cursors = state.setdefault("sku_cursors", {})
 
         operation = 0
         max_operations = (
@@ -535,6 +537,12 @@ def main() -> int:
                             buyer_cursor + query_offset
                         ) % len(entries)
                         tab, product, fallback = entries[entry_index]
+                        sku_record = select_rotating_sku(
+                            vertical,
+                            product,
+                            sku_cursors,
+                        )
+                        sku_product = format_sku_target(sku_record)
                         selected, next_keyword_cursor = select_rotating_keywords(
                             vertical,
                             product,
@@ -554,7 +562,7 @@ def main() -> int:
                             TARGET_LEADS_PER_VERTICAL - vertical_counts[vertical]
                         )
                         print(
-                            f"\n[{vertical} / {product}] "
+                            f"\n[{vertical} / {product} / {sku_product}] "
                             f"Buyer search: {query} in {city} | "
                             f"remaining: {remaining}"
                         )
@@ -588,7 +596,7 @@ def main() -> int:
                             format_lead_row(
                                 lead,
                                 vertical,
-                                product,
+                                sku_product,
                                 city,
                             )
                             for lead in leads
@@ -608,8 +616,8 @@ def main() -> int:
                             written_rows = []
 
                         added = len(written_rows)
-                        per_product_counts[product] = (
-                            per_product_counts.get(product, 0) + added
+                        per_product_counts[sku_product] = (
+                            per_product_counts.get(sku_product, 0) + added
                         )
                         total_added += added
                         vertical_counts[vertical] += added

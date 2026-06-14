@@ -15,6 +15,11 @@ from config import (
 from keyword_library import load_keyword_library
 from main import SOURCE_REGISTRY
 from sheets import get_client
+from sku_catalog import (
+    load_sku_catalog,
+    sku_counts_by_vertical,
+    validate_sku_routes,
+)
 from state import load_state
 
 
@@ -22,13 +27,44 @@ def check_static_configuration() -> list[str]:
     checks = []
     products = list(iter_products())
     library = load_keyword_library()
+    sku_catalog = load_sku_catalog()
 
     # Intentional release guardrails. Update these values only when Sunzone
     # formally adds a vertical, product, source, or expands the town catalogue.
     if len(VERTICALS) != 8:
         raise RuntimeError(f"Expected 8 verticals, found {len(VERTICALS)}")
     if len(products) != 18:
-        raise RuntimeError(f"Expected 18 products, found {len(products)}")
+        raise RuntimeError(
+            f"Expected 18 search families, found {len(products)}"
+        )
+    sku_errors = validate_sku_routes(VERTICALS)
+    if sku_errors:
+        raise RuntimeError("Invalid SKU routes: " + "; ".join(sku_errors[:5]))
+    if len(sku_catalog) != 170:
+        raise RuntimeError(
+            f"Expected 170 SKU/system records, found {len(sku_catalog)}"
+        )
+    inventory_sku_count = sum(
+        record["catalogue_type"] == "SKU"
+        for record in sku_catalog
+    )
+    website_system_count = sum(
+        record["catalogue_type"] == "Website system"
+        for record in sku_catalog
+    )
+    if (inventory_sku_count, website_system_count) != (152, 18):
+        raise RuntimeError(
+            "Expected 152 inventory SKUs and 18 website systems, found "
+            f"{inventory_sku_count} and {website_system_count}"
+        )
+    sku_counts = sku_counts_by_vertical()
+    missing_sku_verticals = [
+        vertical for vertical in VERTICALS if not sku_counts[vertical]
+    ]
+    if missing_sku_verticals:
+        raise RuntimeError(
+            f"Verticals without SKUs: {', '.join(missing_sku_verticals)}"
+        )
     if len(SOURCE_REGISTRY) != 11:
         raise RuntimeError(f"Expected 11 sources, found {len(SOURCE_REGISTRY)}")
     if len(INDIA_CITY_ROTATION) < 7705:
@@ -72,7 +108,8 @@ def check_static_configuration() -> list[str]:
 
     checks.extend([
         "8 verticals",
-        "18 products",
+        "18 buyer-search families",
+        "152 inventory SKUs and 18 website systems",
         "11 lead sources",
         f"{len(INDIA_CITY_ROTATION):,} unique towns",
         f"{maharashtra_count} Maharashtra towns first, beginning with Mumbai",
