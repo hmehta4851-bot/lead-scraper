@@ -48,19 +48,26 @@ STATE_NAMES = {
     "35": "Andaman and Nicobar Islands",
 }
 
-PRIORITY_CITIES = [
+PRIMARY_STATE = "Maharashtra"
+
+MAHARASHTRA_PRIORITY_CITIES = [
     ("Mumbai", "Maharashtra"),
+    ("Pune", "Maharashtra"),
+    ("Nagpur", "Maharashtra"),
+    ("Nashik", "Maharashtra"),
+    ("Aurangabad", "Maharashtra"),
+]
+
+NATIONAL_PRIORITY_CITIES = [
     ("Delhi", "Delhi"),
     ("Bangalore", "Karnataka"),
     ("Chennai", "Tamil Nadu"),
     ("Hyderabad", "Andhra Pradesh and Telangana"),
-    ("Pune", "Maharashtra"),
     ("Kolkata", "West Bengal"),
     ("Ahmedabad", "Gujarat"),
     ("Jaipur", "Rajasthan"),
     ("Lucknow", "Uttar Pradesh"),
     ("Surat", "Gujarat"),
-    ("Nagpur", "Maharashtra"),
     ("Indore", "Madhya Pradesh"),
     ("Vadodara", "Gujarat"),
     ("Bhopal", "Madhya Pradesh"),
@@ -74,10 +81,10 @@ PRIORITY_CITIES = [
     ("Guwahati", "Assam"),
     ("Bhubaneswar", "Odisha"),
     ("Thiruvananthapuram", "Kerala"),
-    ("Nashik", "Maharashtra"),
-    ("Aurangabad", "Maharashtra"),
     ("Rajkot", "Gujarat"),
 ]
+
+PRIORITY_CITIES = MAHARASHTRA_PRIORITY_CITIES + NATIONAL_PRIORITY_CITIES
 
 
 def clean_town_name(value: str) -> str:
@@ -111,14 +118,26 @@ def build(source: Path, output: Path) -> None:
         }
     priority_order = {
         (name.casefold(), state.casefold()): index
-        for index, (name, state) in enumerate(PRIORITY_CITIES)
+        for index, (name, state) in enumerate(NATIONAL_PRIORITY_CITIES)
+    }
+    maharashtra_priority = {
+        name.casefold(): index
+        for index, (name, _) in enumerate(MAHARASHTRA_PRIORITY_CITIES)
     }
     cities = sorted(
         towns.values(),
         key=lambda item: (
-            priority_order.get(
-                (item["city"].casefold(), item["state"].casefold()),
-                len(priority_order),
+            0 if item["state"] == PRIMARY_STATE else 1,
+            (
+                maharashtra_priority.get(
+                    item["city"].casefold(),
+                    len(maharashtra_priority),
+                )
+                if item["state"] == PRIMARY_STATE
+                else priority_order.get(
+                    (item["city"].casefold(), item["state"].casefold()),
+                    len(priority_order),
+                )
             ),
             item["state"].casefold(),
             item["city"].casefold(),

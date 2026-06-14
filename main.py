@@ -370,6 +370,21 @@ def vertical_quotas_met(
     return all(vertical_counts.get(vertical, 0) >= target for vertical in verticals)
 
 
+def should_add_next_town(
+    city_offset: int,
+    round_number: int,
+    no_progress_rounds: int,
+) -> bool:
+    """Give the day's first city every keyword round before expanding."""
+    return (
+        no_progress_rounds >= NO_PROGRESS_ROUNDS_BEFORE_NEXT_CITY
+        and (
+            city_offset > 0
+            or round_number >= MAX_SAME_CITY_ROUNDS
+        )
+    )
+
+
 def main() -> int:
     try:
         state = load_state()
@@ -644,9 +659,10 @@ def main() -> int:
 
                 if total_added == round_start_total:
                     no_progress_rounds += 1
-                    if (
-                        no_progress_rounds
-                        >= NO_PROGRESS_ROUNDS_BEFORE_NEXT_CITY
+                    if should_add_next_town(
+                        city_offset,
+                        round_number,
+                        no_progress_rounds,
                     ):
                         print(
                             f"[CITY GROUP] {city} added no new qualified "

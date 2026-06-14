@@ -106,6 +106,51 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(len(products), 18)
         self.assertEqual(len({product for _, _, product, _ in products}), 18)
 
+    def test_rotation_completes_maharashtra_before_other_states(self):
+        maharashtra = [
+            city for city in main.INDIA_CITY_ROTATION
+            if city.endswith(", Maharashtra")
+        ]
+        self.assertEqual(len(maharashtra), 509)
+        self.assertEqual(
+            main.INDIA_CITY_ROTATION[0],
+            "Mumbai, Maharashtra",
+        )
+        self.assertEqual(
+            main.INDIA_CITY_ROTATION[:509],
+            maharashtra,
+        )
+        self.assertFalse(
+            any(
+                city.endswith(", Maharashtra")
+                for city in main.INDIA_CITY_ROTATION[509:]
+            )
+        )
+
+    def test_first_city_receives_every_keyword_round(self):
+        for round_number in range(1, main.MAX_SAME_CITY_ROUNDS):
+            self.assertFalse(
+                main.should_add_next_town(
+                    city_offset=0,
+                    round_number=round_number,
+                    no_progress_rounds=1,
+                )
+            )
+        self.assertTrue(
+            main.should_add_next_town(
+                city_offset=0,
+                round_number=main.MAX_SAME_CITY_ROUNDS,
+                no_progress_rounds=1,
+            )
+        )
+        self.assertTrue(
+            main.should_add_next_town(
+                city_offset=1,
+                round_number=1,
+                no_progress_rounds=1,
+            )
+        )
+
     def test_keyword_library_is_globally_unique_and_complete(self):
         data = load_keyword_library()
         keywords = [

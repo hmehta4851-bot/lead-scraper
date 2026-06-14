@@ -37,6 +37,28 @@ def check_static_configuration() -> list[str]:
         )
     if len(INDIA_CITY_ROTATION) != len(set(INDIA_CITY_ROTATION)):
         raise RuntimeError("City rotation contains duplicates")
+    if INDIA_CITY_ROTATION[0] != "Mumbai, Maharashtra":
+        raise RuntimeError("Maharashtra-first rotation must begin with Mumbai")
+    maharashtra_count = sum(
+        city.endswith(", Maharashtra")
+        for city in INDIA_CITY_ROTATION
+    )
+    if maharashtra_count != 509:
+        raise RuntimeError(
+            f"Expected 509 Maharashtra towns, found {maharashtra_count}"
+        )
+    if not all(
+        city.endswith(", Maharashtra")
+        for city in INDIA_CITY_ROTATION[:maharashtra_count]
+    ):
+        raise RuntimeError(
+            "All Maharashtra towns must be contiguous at the start"
+        )
+    if any(
+        city.endswith(", Maharashtra")
+        for city in INDIA_CITY_ROTATION[maharashtra_count:]
+    ):
+        raise RuntimeError("Maharashtra town found after national rotation")
 
     keyword_count = sum(
         len(keywords)
@@ -53,6 +75,7 @@ def check_static_configuration() -> list[str]:
         "18 products",
         "11 lead sources",
         f"{len(INDIA_CITY_ROTATION):,} unique towns",
+        f"{maharashtra_count} Maharashtra towns first, beginning with Mumbai",
         f"{keyword_count:,} validated product keywords",
         f"valid rotation index {city_index}",
     ])
