@@ -79,6 +79,30 @@ class PipelineTests(unittest.TestCase):
     def test_daily_collection_has_bounded_low_yield_city_fallback(self):
         self.assertEqual(MAX_CITIES_PER_DAY, 20)
 
+    def test_preflight_locks_business_policy(self):
+        checks = preflight.check_static_configuration()
+        self.assertIn(
+            "50-lead target with 25-lead city expansion floor",
+            checks,
+        )
+        self.assertIn(
+            "8 complete keyword rounds before any town expansion",
+            checks,
+        )
+        self.assertIn(
+            "strict buyer, supplier and competitor qualification rules",
+            checks,
+        )
+        workflow_checks = preflight.check_workflow_policy()
+        self.assertIn(
+            "7:47 AM IST Mon-Sat automatic collection",
+            workflow_checks,
+        )
+        self.assertIn(
+            "four same-day missed-run and failure recovery checks",
+            workflow_checks,
+        )
+
     def test_status_workflow_is_read_only_and_aggregate_only(self):
         repo_root = Path(__file__).resolve().parents[1]
         status = (

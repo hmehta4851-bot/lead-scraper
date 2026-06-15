@@ -4,12 +4,25 @@ from __future__ import annotations
 
 import os
 import smtplib
+from pathlib import Path
 
 from config import (
+    COMPETITOR_BRANDS,
     INDIA_CITY_ROTATION,
+    KEYWORDS_PER_PRODUCT_PER_RUN,
+    MAX_CITIES_PER_DAY,
+    MAX_LEADS_PER_SOURCE_PER_VERTICAL,
+    MAX_RUN_MINUTES,
+    MAX_SAME_CITY_ROUNDS,
+    MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION,
     SHEET_HEADERS,
     SHEET_ID,
+    SOURCE_LEAD_CAP,
+    SOURCE_RESULT_LIMIT,
+    SUPPLIER_SIGNALS,
+    TARGET_LEADS_PER_VERTICAL,
     VERTICALS,
+    VERTICAL_BUYER_SIGNALS,
     iter_products,
 )
 from keyword_library import load_keyword_library
@@ -67,6 +80,65 @@ def check_static_configuration() -> list[str]:
         )
     if len(SOURCE_REGISTRY) != 11:
         raise RuntimeError(f"Expected 11 sources, found {len(SOURCE_REGISTRY)}")
+    policy = {
+        "target leads per vertical": (
+            TARGET_LEADS_PER_VERTICAL,
+            50,
+        ),
+        "city expansion floor per vertical": (
+            MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION,
+            25,
+        ),
+        "keyword rounds before leaving a city": (
+            MAX_SAME_CITY_ROUNDS,
+            8,
+        ),
+        "keywords per vertical pass": (
+            KEYWORDS_PER_PRODUCT_PER_RUN,
+            2,
+        ),
+        "maximum towns available for low-yield fallback": (
+            MAX_CITIES_PER_DAY,
+            20,
+        ),
+        "safe runtime minutes": (
+            MAX_RUN_MINUTES,
+            330,
+        ),
+        "source result limit": (
+            SOURCE_RESULT_LIMIT,
+            20,
+        ),
+        "per-query source lead cap": (
+            SOURCE_LEAD_CAP,
+            20,
+        ),
+        "daily source cap per vertical": (
+            MAX_LEADS_PER_SOURCE_PER_VERTICAL,
+            25,
+        ),
+    }
+    policy_errors = [
+        f"{name}: expected {expected}, found {actual}"
+        for name, (actual, expected) in policy.items()
+        if actual != expected
+    ]
+    if policy_errors:
+        raise RuntimeError(
+            "Sunzone operating policy drift: " + "; ".join(policy_errors)
+        )
+    missing_buyer_signals = [
+        vertical
+        for vertical in VERTICALS
+        if not VERTICAL_BUYER_SIGNALS.get(vertical)
+    ]
+    if missing_buyer_signals:
+        raise RuntimeError(
+            "Verticals without buyer qualification signals: "
+            + ", ".join(missing_buyer_signals)
+        )
+    if not COMPETITOR_BRANDS or not SUPPLIER_SIGNALS:
+        raise RuntimeError("Competitor and supplier exclusion rules are required")
     if len(INDIA_CITY_ROTATION) < 7705:
         raise RuntimeError(
             f"Expected at least 7,705 towns, found {len(INDIA_CITY_ROTATION)}"
@@ -111,6 +183,10 @@ def check_static_configuration() -> list[str]:
         "18 buyer-search families",
         "152 inventory SKUs and 18 website systems",
         "11 lead sources",
+        "50-lead target with 25-lead city expansion floor",
+        "8 complete keyword rounds before any town expansion",
+        "strict buyer, supplier and competitor qualification rules",
+        "25-lead daily source cap per vertical",
         f"{len(INDIA_CITY_ROTATION):,} unique towns",
         f"{maharashtra_count} Maharashtra towns first, beginning with Mumbai",
         f"{keyword_count:,} validated product keywords",
@@ -166,6 +242,47 @@ def check_google_sheet() -> list[str]:
     return checks
 
 
+def check_workflow_policy() -> list[str]:
+    root = Path(__file__).resolve().parent
+    daily = (root / ".github/workflows/daily.yml").read_text()
+    watchdog = (root / ".github/workflows/watchdog.yml").read_text()
+    required_daily = [
+        'cron: "17 2 * * 1-6"',
+        "cancel-in-progress: false",
+        "Run production readiness preflight",
+        "Run Sunzone Prospect Flow",
+        "Send immediate failure alert",
+    ]
+    required_watchdog = [
+        'cron: "47 2 * * 1-6"',
+        'cron: "17 3 * * 1-6"',
+        'cron: "17 5 * * 1-6"',
+        'cron: "17 9 * * 1-6"',
+        "gh workflow run daily.yml",
+        "Latest run was manually cancelled — staying stopped today.",
+    ]
+    missing = [
+        f"daily.yml: {value}"
+        for value in required_daily
+        if value not in daily
+    ]
+    missing.extend(
+        f"watchdog.yml: {value}"
+        for value in required_watchdog
+        if value not in watchdog
+    )
+    if missing:
+        raise RuntimeError(
+            "Automation schedule or recovery policy drift: "
+            + "; ".join(missing)
+        )
+    return [
+        "7:47 AM IST Mon-Sat automatic collection",
+        "four same-day missed-run and failure recovery checks",
+        "manual cancellation remains stopped for the day",
+    ]
+
+
 def check_gmail_login() -> list[str]:
     gmail_user = os.environ.get("GMAIL_USER", "")
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "")
@@ -179,6 +296,7 @@ def check_gmail_login() -> list[str]:
 def main() -> int:
     checks = []
     checks.extend(check_static_configuration())
+    checks.extend(check_workflow_policy())
     checks.extend(check_google_sheet())
     checks.extend(check_gmail_login())
     print("SUNZONE PROSPECT FLOW PREFLIGHT: PASS")
