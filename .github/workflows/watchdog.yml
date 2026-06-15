@@ -53,11 +53,38 @@ jobs:
           runs = json.load(sys.stdin)
           if not isinstance(runs, list):
               raise SystemExit("GitHub run response was not a list")
-          latest = runs[0] if runs else {}
+          active = next(
+              (
+                  run for run in runs
+                  if run.get("status") in {"in_progress", "queued", "pending"}
+              ),
+              None,
+          )
+          successful = next(
+              (
+                  run for run in runs
+                  if run.get("status") == "completed"
+                  and run.get("conclusion") == "success"
+              ),
+              None,
+          )
+          # "cancelled" runs are maintenance replacements, not failures.
+          genuine_failures = [
+              run for run in runs
+              if run.get("status") == "completed"
+              and run.get("conclusion")
+              in {
+                  "failure",
+                  "timed_out",
+                  "action_required",
+                  "startup_failure",
+              }
+          ]
+          selected = active or successful or (runs[0] if runs else {})
           print(
-              latest.get("status", "none"),
-              latest.get("conclusion") or "none",
-              len(runs),
+              selected.get("status", "none"),
+              selected.get("conclusion") or "none",
+              len(genuine_failures),
           )
           ')"
 
@@ -65,7 +92,7 @@ jobs:
             ''|*[!0-9]*) echo "Invalid attempt count"; exit 1 ;;
           esac
 
-          echo "Status: $STATUS | Conclusion: $CONCLUSION | Attempts: $ATTEMPTS"
+          echo "Status: $STATUS | Conclusion: $CONCLUSION | Genuine failures: $ATTEMPTS"
 
           if [ "$STATUS" = "completed" ] && [ "$CONCLUSION" = "success" ]; then
             echo "need_rerun=false" >> $GITHUB_OUTPUT
@@ -78,7 +105,7 @@ jobs:
           elif [ "$ATTEMPTS" -ge 3 ]; then
             echo "need_rerun=false" >> $GITHUB_OUTPUT
             echo "recovery_exhausted=true" >> $GITHUB_OUTPUT
-            echo "Automatic recovery limit reached."
+            echo "Automatic recovery limit reached after three genuine failures."
           else
             echo "need_rerun=true" >> $GITHUB_OUTPUT
             echo "recovery_exhausted=false" >> $GITHUB_OUTPUT
