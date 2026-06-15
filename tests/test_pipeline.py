@@ -9,6 +9,7 @@ from config import MAX_LEADS_PER_SOURCE_PER_VERTICAL, VERTICALS, iter_products
 from keyword_library import (
     add_buyer_intent,
     load_keyword_library,
+    select_buyer_signal,
     select_rotating_keywords,
 )
 from keyword_rules import validate_keyword_library, validate_product_keyword
@@ -381,6 +382,38 @@ class PipelineTests(unittest.TestCase):
     def test_product_keyword_is_paired_with_buyer_intent(self):
         queries = add_buyer_intent("Playful", ["EPDM flooring"], cursor=0)
         self.assertEqual(queries, ["EPDM flooring school"])
+
+    def test_buyer_signal_rotates_within_vertical(self):
+        self.assertEqual(select_buyer_signal("Playful", 0), "school")
+        self.assertEqual(select_buyer_signal("Powerful", 0), "gym")
+        self.assertNotEqual(
+            select_buyer_signal("Powerful", 0),
+            select_buyer_signal("Powerful", 1),
+        )
+
+    def test_directory_uses_buyer_query_and_marketplace_uses_product_query(self):
+        calls = []
+
+        def search(query, city, max_results):
+            calls.append(query)
+            return []
+
+        registry = (
+            ("Google Maps", search),
+            ("TradeIndia", search),
+        )
+        with patch("main.time.sleep", return_value=None):
+            main.run_all_sources(
+                "football turf 11000 dtex",
+                "Mumbai",
+                source_registry=registry,
+                buyer_keyword="football academy",
+            )
+
+        self.assertEqual(
+            calls,
+            ["football academy", "football turf 11000 dtex"],
+        )
 
     def test_recovery_registry_excludes_supplier_marketplaces(self):
         recovery_sources = {name for name, _ in main.BUYER_SOURCE_REGISTRY}

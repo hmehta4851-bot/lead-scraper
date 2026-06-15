@@ -29,7 +29,12 @@ from config import (
     iter_products,
 )
 from enricher import enrich_website, resolve_contact_names
-from keyword_library import add_buyer_intent, cursor_key, select_rotating_keywords
+from keyword_library import (
+    add_buyer_intent,
+    cursor_key,
+    select_buyer_signal,
+    select_rotating_keywords,
+)
 from qualification import competitor_reasons, qualify_lead
 from notifier import (
     notify_daily_summary,
@@ -90,6 +95,7 @@ BUYER_SOURCE_REGISTRY = tuple(
         "Google Maps",
     }
 )
+BUYER_SOURCE_NAMES = frozenset(name for name, _ in BUYER_SOURCE_REGISTRY)
 
 _OWN_BRAND_RE = re.compile(
     r"\bsunzone\b|\bsunzone\.in\b|\bsunzonesport(?:s)?\b",
@@ -167,6 +173,7 @@ def run_all_sources(
     keyword: str,
     city: str,
     source_registry=None,
+    buyer_keyword: str | None = None,
 ) -> tuple[list[dict], dict]:
     """Attempt every configured source; one failure never blocks another."""
     source_registry = source_registry or SOURCE_REGISTRY
@@ -174,12 +181,24 @@ def run_all_sources(
     telemetry = {"attempted": [], "failed": {}, "raw_counts": {}}
     for source_name, search in source_registry:
         telemetry["attempted"].append(source_name)
-        print(f"  [{source_name}] {keyword} in {city}")
+        source_keyword = (
+            buyer_keyword
+            if buyer_keyword and source_name in BUYER_SOURCE_NAMES
+            else keyword
+        )
+        print(f"  [{source_name}] {source_keyword} in {city}")
         try:
-            found = search(keyword, city, max_results=SOURCE_RESULT_LIMIT) or []
+            found = (
+                search(
+                    source_keyword,
+                    city,
+                    max_results=SOURCE_RESULT_LIMIT,
+                )
+                or []
+            )
             for lead in found:
                 lead.setdefault("source", source_name)
-                lead["search_keyword"] = keyword
+                lead["search_keyword"] = source_keyword
             leads.extend(found)
             telemetry["raw_counts"][source_name] = len(found)
             print(f"  [{source_name}] +{len(found)} raw")
@@ -301,15 +320,22 @@ def scrape_product(
     target: int = LEADS_PER_PRODUCT,
     source_counts: Counter | None = None,
     source_registry=None,
+    buyer_keywords: list[str] | None = None,
 ) -> tuple[list[dict], list[dict]]:
     source_registry = source_registry or SOURCE_REGISTRY
     all_raw: list[dict] = []
     source_runs: list[dict] = []
-    for keyword in keyword_list:
+    for index, keyword in enumerate(keyword_list):
+        buyer_keyword = (
+            buyer_keywords[index]
+            if buyer_keywords and index < len(buyer_keywords)
+            else None
+        )
         raw, telemetry = run_all_sources(
             keyword,
             city,
             source_registry=source_registry,
+            buyer_keyword=buyer_keyword,
         )
         all_raw.extend(raw)
         source_runs.append({"keyword": keyword, **telemetry})
@@ -605,6 +631,11 @@ def main() -> int:
                         )
                         if not selected:
                             continue
+                        product_query = selected[0]
+                        buyer_signal = select_buyer_signal(
+                            vertical,
+                            buyer_cursor + query_offset,
+                        )
                         query = add_buyer_intent(
                             vertical,
                             selected,
@@ -625,12 +656,13 @@ def main() -> int:
                                 else BUYER_SOURCE_REGISTRY
                             )
                             leads, runs = scrape_product(
-                                [query],
+                                [product_query],
                                 city,
                                 vertical,
                                 min(LEADS_PER_PRODUCT, remaining),
                                 vertical_source_counts[vertical],
                                 source_registry,
+                                buyer_keywords=[buyer_signal],
                             )
                             for run in runs:
                                 source_failures.update(run["failed"])

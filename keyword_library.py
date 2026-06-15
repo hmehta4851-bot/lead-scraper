@@ -82,9 +82,17 @@ def add_buyer_intent(
         return keywords
     targeted = []
     for offset, keyword in enumerate(keywords):
-        signal = signals[(cursor + offset) % len(signals)]
+        signal = select_buyer_signal(vertical, cursor + offset)
         if signal.casefold() in keyword.casefold():
             targeted.append(keyword)
         else:
             targeted.append(f"{keyword} {signal}")
     return targeted
+
+
+def select_buyer_signal(vertical: str, cursor: int = 0) -> str:
+    """Return the rotating end-buyer category for directory searches."""
+    signals = VERTICAL_BUYER_SIGNALS.get(vertical, [])
+    if not signals:
+        return ""
+    return signals[cursor % len(signals)]
