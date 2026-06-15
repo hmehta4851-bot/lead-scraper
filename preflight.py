@@ -250,6 +250,7 @@ def check_workflow_policy() -> list[str]:
     required_daily = [
         'cron: "17 2 * * 1-6"',
         "cancel-in-progress: false",
+        "Run automated safety tests",
         "Run production readiness preflight",
         "Run Sunzone Prospect Flow",
         "Send immediate failure alert",

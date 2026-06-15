@@ -118,6 +118,16 @@ class PipelineTests(unittest.TestCase):
             "three-attempt API, dispatch, email and state synchronization",
             workflow_checks,
         )
+        daily = (
+            Path(__file__).resolve().parents[1]
+            / ".github/workflows/daily.yml"
+        ).read_text()
+        preflight_workflow = (
+            Path(__file__).resolve().parents[1]
+            / ".github/workflows/preflight.yml"
+        ).read_text()
+        self.assertIn("Run automated safety tests", daily)
+        self.assertIn("Run automated safety tests", preflight_workflow)
 
     def test_status_workflow_is_read_only_and_aggregate_only(self):
         repo_root = Path(__file__).resolve().parents[1]
