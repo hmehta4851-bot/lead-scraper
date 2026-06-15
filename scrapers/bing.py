@@ -35,6 +35,53 @@ HEADERS = {
 }
 
 
+def _rss_results(xml_text: str, max_results: int) -> list[dict]:
+    leads = []
+    seen_companies = set()
+    soup = BeautifulSoup(xml_text, "xml")
+    for item in soup.select("item"):
+        if len(leads) >= max_results:
+            break
+        title_node = item.find("title")
+        link_node = item.find("link")
+        description_node = item.find("description")
+        title = title_node.get_text(" ", strip=True) if title_node else ""
+        website = link_node.get_text(" ", strip=True) if link_node else ""
+        snippet = (
+            description_node.get_text(" ", strip=True)
+            if description_node
+            else ""
+        )
+        if len(title) < 5 or not website.startswith("http"):
+            continue
+        if _skip_domain(website):
+            continue
+        company = _TITLE_STRIP_RE.sub("", title).strip()
+        company_key = company.casefold()[:80]
+        if len(company) < 3 or company_key in seen_companies:
+            continue
+        phone = ""
+        for raw in PHONE_RE.findall(snippet):
+            candidate = _clean_phone(raw)
+            if re.fullmatch(r"[6-9]\d{9}", candidate):
+                phone = candidate
+                break
+        seen_companies.add(company_key)
+        leads.append(
+            {
+                "company": company,
+                "contact_person": "",
+                "phone": phone,
+                "email": "",
+                "designation": "",
+                "website": website,
+                "website_text": f"{title} {snippet}",
+                "source": "Bing",
+            }
+        )
+    return leads
+
+
 def _clean_phone(raw: str) -> str:
     digits = re.sub(r"\D", "", str(raw))
     if digits.startswith("91") and len(digits) == 12:
@@ -64,7 +111,6 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
         resp = requests.get(url, headers=HEADERS, timeout=15, allow_redirects=True)
         if resp.status_code != 200:
             print(f"  [Bing] HTTP {resp.status_code}")
-            return leads
 
         soup = BeautifulSoup(resp.text, "html.parser")
         results = soup.select("li.b_algo")
@@ -124,11 +170,33 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
                     "email": "",
                     "designation": "",
                     "website": website,
+                    "website_text": f"{title} {snippet}",
                     "source": "Bing",
                 })
 
             except Exception:
                 continue
+
+        if not leads:
+            rss_url = (
+                f"https://www.bing.com/search?"
+                f"q={quote_plus(query)}&format=rss"
+            )
+            rss_response = requests.get(
+                rss_url,
+                headers=HEADERS,
+                timeout=15,
+                allow_redirects=True,
+            )
+            if rss_response.status_code == 200:
+                leads = _rss_results(rss_response.text, max_results)
+                if leads:
+                    print(
+                        f"  [Bing] HTML empty; RSS fallback produced "
+                        f"{len(leads)} results"
+                    )
+            else:
+                print(f"  [Bing RSS] HTTP {rss_response.status_code}")
 
         print(f"  [Bing] {len(leads)} results — {keyword} in {city}")
         time.sleep(1)

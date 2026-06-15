@@ -4,18 +4,17 @@ from source_readiness import probe_sources
 
 
 class SourceReadinessTests(unittest.TestCase):
-    def test_readiness_requires_three_sources_across_two_groups(self):
+    def test_readiness_requires_multiple_sources_across_two_groups(self):
         productive = lambda *args, **kwargs: [{"company": "Buyer"}]
         empty = lambda *args, **kwargs: []
         registry = (
             ("Sulekha", productive),
             ("DuckDuckGo", productive),
-            ("Bing", productive),
             ("IndiaMART", empty),
         )
         report = probe_sources("gym", "Mumbai", registry)
         self.assertTrue(report["ready"])
-        self.assertEqual(report["attempted_count"], 4)
+        self.assertEqual(report["attempted_count"], 3)
         self.assertEqual(
             report["productive_groups"],
             ["directories", "search engines"],

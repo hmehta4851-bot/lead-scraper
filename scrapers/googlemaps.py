@@ -55,7 +55,9 @@ def search(keyword: str, city: str, max_results: int = 40) -> list:
         articles = page.query_selector_all('div[role="article"]')
         seen_phones = set()
 
-        for art in articles[:max_results]:
+        for art in articles:
+            if len(leads) >= max_results:
+                break
             try:
                 text = art.inner_text()
                 lines = [l.strip() for l in text.split("\n") if l.strip()]

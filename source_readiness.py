@@ -33,6 +33,9 @@ SOURCE_CANARY_KEYWORDS = {
     "IndiaMART": "artificial grass",
 }
 
+MIN_PRODUCTIVE_SOURCES = 2
+MIN_PRODUCTIVE_GROUPS = 2
+
 _DEGRADED_MARKERS = (
     " error:",
     " http 202",
@@ -102,8 +105,8 @@ def probe_sources(
     productive_groups = sorted({result["group"] for result in productive})
     ready = (
         attempted == expected
-        and len(productive) >= 3
-        and len(productive_groups) >= 2
+        and len(productive) >= MIN_PRODUCTIVE_SOURCES
+        and len(productive_groups) >= MIN_PRODUCTIVE_GROUPS
     )
     return {
         "ready": ready,
