@@ -286,6 +286,7 @@ def check_workflow_policy() -> list[str]:
         'cron: "7 15 * * 0-5"',
         'cron: "37 0 * * 1-6"',
         "Run automated safety tests",
+        "Audit Python dependencies",
         "Verify configuration, Sheet and Gmail",
         "Probe all 11 sources without writing leads",
         "python source_readiness.py",

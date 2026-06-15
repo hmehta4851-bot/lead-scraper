@@ -43,7 +43,12 @@ jobs:
           echo "TMPDIR=$private_tmp" >> "$GITHUB_ENV"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          pip install pip-audit==2.10.1
+
+      - name: Audit Python dependencies
+        run: pip-audit -r requirements.txt
 
       - name: Run automated safety tests
         run: python -m unittest discover -s tests -q

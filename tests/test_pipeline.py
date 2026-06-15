@@ -76,6 +76,7 @@ class PipelineTests(unittest.TestCase):
         self.assertIn('cron: "7 15 * * 0-5"', readiness)
         self.assertIn('cron: "37 0 * * 1-6"', readiness)
         self.assertIn("python source_readiness.py", readiness)
+        self.assertIn("pip-audit -r requirements.txt", readiness)
         self.assertIn(
             "Probe all 11 sources without writing leads",
             readiness,
