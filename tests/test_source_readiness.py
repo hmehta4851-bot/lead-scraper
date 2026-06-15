@@ -20,6 +20,12 @@ class SourceReadinessTests(unittest.TestCase):
             report["productive_groups"],
             ["directories", "search engines"],
         )
+        marketplace = next(
+            source
+            for source in report["sources"]
+            if source["source"] == "IndiaMART"
+        )
+        self.assertEqual(marketplace["keyword"], "artificial grass")
 
     def test_single_source_group_is_not_ready(self):
         productive = lambda *args, **kwargs: [{"company": "Buyer"}]

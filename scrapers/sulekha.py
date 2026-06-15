@@ -74,7 +74,7 @@ def _get_profile_data(profile_url: str) -> dict:
 def search(keyword: str, city: str, max_results: int = 15) -> list:
     leads = []
     kw_slug = _slugify(keyword)
-    city_slug = _slugify(city)
+    city_slug = _slugify(city.split(",", 1)[0].strip())
 
     # Try two URL variants: exact slug and with 's' suffix
     candidate_urls = [

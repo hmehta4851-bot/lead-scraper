@@ -23,13 +23,14 @@ def _clean_phone(raw: str) -> str:
 def search(keyword: str, city: str, max_results: int = 20) -> list:
     leads = []
     seen_phones = set()
+    city_name = city.split(",", 1)[0].strip()
 
     page = get_page("ExportersIndia")
 
     # Try two URL variants
     urls = [
-        f"https://www.exportersindia.com/search.php?ss={keyword.replace(' ', '+')}&searchtype=Sellers&city={city}",
-        f"https://www.exportersindia.com/search.php?ss={keyword.replace(' ', '+')}+{city}&searchtype=Sellers",
+        f"https://www.exportersindia.com/search.php?ss={keyword.replace(' ', '+')}&searchtype=Sellers&city={city_name}",
+        f"https://www.exportersindia.com/search.php?ss={keyword.replace(' ', '+')}+{city_name}&searchtype=Sellers",
     ]
 
     cards = []

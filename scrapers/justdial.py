@@ -38,7 +38,12 @@ def search(keyword: str, city: str, max_results: int = 20) -> list:
     seen_companies: set = set()
 
     kw_slug = re.sub(r"[^a-z0-9]+", "-", keyword.lower().strip()).strip("-")
-    city_slug = re.sub(r"[^a-z0-9]+", "-", city.lower().strip()).strip("-")
+    city_name = city.split(",", 1)[0].strip()
+    city_slug = re.sub(
+        r"[^a-z0-9]+",
+        "-",
+        city_name.lower(),
+    ).strip("-")
     url = f"https://www.justdial.com/{city_slug}/{kw_slug}"
 
     try:

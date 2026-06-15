@@ -26,7 +26,7 @@ def search(keyword: str, city: str, max_results: int = 20) -> list:
     seen_companies: set = set()
 
     query = keyword.replace(" ", "+")
-    city_enc = city.replace(" ", "+")
+    city_enc = city.split(",", 1)[0].strip().replace(" ", "+")
     url = (
         f"https://www.tradeindia.com/search.html"
         f"?keyword={query}&cntry=india&city={city_enc}"

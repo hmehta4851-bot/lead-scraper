@@ -27,8 +27,15 @@ SOURCE_GROUPS = {
     "IndiaMART": "marketplaces",
 }
 
+SOURCE_CANARY_KEYWORDS = {
+    "ExportersIndia": "artificial grass",
+    "TradeIndia": "artificial grass",
+    "IndiaMART": "artificial grass",
+}
+
 _DEGRADED_MARKERS = (
     " error:",
+    " http 202",
     " http 4",
     " http 5",
     "failed after retry",
@@ -41,19 +48,27 @@ def probe_sources(
     keyword: str,
     city: str,
     source_registry=None,
-    max_results: int = 1,
+    max_results: int = 3,
 ) -> dict:
     """Probe every source without writing to the Google Sheet."""
     registry = source_registry or SOURCE_REGISTRY
     results = []
     for source_name, search in registry:
+        source_keyword = SOURCE_CANARY_KEYWORDS.get(source_name, keyword)
         started = time.monotonic()
         captured = io.StringIO()
         leads = []
         error = ""
         try:
             with contextlib.redirect_stdout(captured):
-                leads = search(keyword, city, max_results=max_results) or []
+                leads = (
+                    search(
+                        source_keyword,
+                        city,
+                        max_results=max_results,
+                    )
+                    or []
+                )
         except Exception as exc:
             error = f"{type(exc).__name__}: {exc}"
         output = captured.getvalue().strip()
@@ -70,6 +85,7 @@ def probe_sources(
             {
                 "source": source_name,
                 "group": SOURCE_GROUPS.get(source_name, "other"),
+                "keyword": source_keyword,
                 "status": status,
                 "results": len(leads),
                 "seconds": round(time.monotonic() - started, 2),
@@ -118,12 +134,13 @@ def format_report(report: dict) -> str:
             + (", ".join(report["productive_groups"]) or "none")
         ),
         "",
-        "| Source | Group | Status | Results | Seconds |",
-        "|---|---|---:|---:|---:|",
+        "| Source | Group | Canary | Status | Results | Seconds |",
+        "|---|---|---|---:|---:|---:|",
     ]
     for source in report["sources"]:
         lines.append(
             f"| {source['source']} | {source['group']} | "
+            f"{source['keyword']} | "
             f"{source['status']} | {source['results']} | "
             f"{source['seconds']} |"
         )
