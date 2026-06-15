@@ -6,6 +6,7 @@ import re
 import sys
 import time
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
 from urllib.parse import urlparse
 
@@ -220,9 +221,27 @@ def _enrich(leads: list[dict], seen_phones: set[str], limit: int) -> None:
             or not lead.get("contact_person")
         )
     ]
-    for lead in candidates[:limit]:
+    candidates = candidates[:limit]
+    if not candidates:
+        return
+
+    with ThreadPoolExecutor(max_workers=min(6, len(candidates))) as pool:
+        futures = {
+            pool.submit(enrich_website, lead["website"], max_pages=2): lead
+            for lead in candidates
+        }
+        completed = []
+        for future in as_completed(futures):
+            lead = futures[future]
+            try:
+                completed.append((lead, future.result()))
+            except Exception as exc:
+                print(
+                    f"  [Enricher] {lead.get('website')} skipped: {exc}"
+                )
+
+    for lead, enriched in completed:
         try:
-            enriched = enrich_website(lead["website"], max_pages=2)
             phone = _norm_phone(enriched.get("phone", ""))
             if phone and phone not in seen_phones and not lead.get("phone"):
                 lead["phone"] = phone
@@ -234,6 +253,43 @@ def _enrich(leads: list[dict], seen_phones: set[str], limit: int) -> None:
                 lead["website_text"] = enriched["website_text"]
         except Exception as exc:
             print(f"  [Enricher] {lead.get('website')} skipped: {exc}")
+
+
+def _qualify_candidates(
+    leads: list[dict],
+    vertical: str,
+    seen_phones: set[str],
+    enrichment_limit: int = 25,
+) -> list[dict]:
+    """Qualify obvious buyers first and enrich only unresolved prospects."""
+    actionable: list[dict] = []
+    unresolved: list[dict] = []
+
+    for lead in leads:
+        if is_own_brand(lead):
+            continue
+        qualified, score, reason = qualify_lead(lead, vertical)
+        if qualified:
+            lead["lead_score"] = score
+            lead["qualification_reason"] = reason
+            actionable.append(lead)
+        elif lead.get("website") and (
+            reason == "missing phone"
+            or reason.startswith("no verified ")
+        ):
+            unresolved.append(lead)
+
+    if unresolved:
+        _enrich(unresolved, seen_phones, limit=enrichment_limit)
+        for lead in unresolved:
+            qualified, score, reason = qualify_lead(lead, vertical)
+            if not qualified:
+                continue
+            lead["lead_score"] = score
+            lead["qualification_reason"] = reason
+            actionable.append(lead)
+
+    return actionable
 
 
 def scrape_product(
@@ -260,18 +316,11 @@ def scrape_product(
     seen_phones = {
         lead["phone"] for lead in deduped if lead.get("phone")
     }
-    _enrich(deduped, seen_phones, limit=60)
-
-    actionable = []
-    for lead in deduped:
-        if is_own_brand(lead):
-            continue
-        qualified, score, reason = qualify_lead(lead, vertical)
-        if not qualified:
-            continue
-        lead["lead_score"] = score
-        lead["qualification_reason"] = reason
-        actionable.append(lead)
+    actionable = _qualify_candidates(
+        deduped,
+        vertical,
+        seen_phones,
+    )
     actionable.sort(
         key=lambda lead: (
             int(lead.get("lead_score", 0)),

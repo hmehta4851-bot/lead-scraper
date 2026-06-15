@@ -534,6 +534,95 @@ class PipelineTests(unittest.TestCase):
         self.assertGreaterEqual(score, 80)
         self.assertIn("gym", reason)
 
+    def test_obvious_buyer_skips_prequalification_enrichment(self):
+        lead = {
+            "company": "Iron House Fitness Gym",
+            "phone": "9876543210",
+            "website": "https://ironhouse.example",
+        }
+        with patch("main._enrich") as enrich:
+            qualified = main._qualify_candidates(
+                [lead],
+                "Powerful",
+                {"9876543210"},
+            )
+
+        self.assertEqual(qualified, [lead])
+        enrich.assert_not_called()
+
+    def test_ambiguous_website_is_enriched_then_strictly_qualified(self):
+        lead = {
+            "company": "Iron House",
+            "phone": "",
+            "website": "https://ironhouse.example",
+        }
+
+        def enrich(leads, seen_phones, limit):
+            self.assertEqual(leads, [lead])
+            self.assertEqual(limit, 25)
+            lead["phone"] = "9876543210"
+            lead["website_text"] = "fitness gym and health club"
+
+        with patch("main._enrich", side_effect=enrich):
+            qualified = main._qualify_candidates(
+                [lead],
+                "Powerful",
+                set(),
+            )
+
+        self.assertEqual(qualified, [lead])
+        self.assertGreaterEqual(lead["lead_score"], 80)
+
+    def test_parallel_enrichment_merges_contact_data_safely(self):
+        leads = [
+            {
+                "company": "Gym One",
+                "phone": "",
+                "website": "https://one.example",
+            },
+            {
+                "company": "Gym Two",
+                "phone": "",
+                "website": "https://two.example",
+            },
+        ]
+
+        def enrich(url, max_pages):
+            suffix = "1" if "one." in url else "2"
+            return {
+                "phone": f"987654321{suffix}",
+                "email": f"sales{suffix}@example.com",
+                "contact_person": "",
+                "designation": "",
+                "website_text": "fitness gym",
+            }
+
+        with patch("main.enrich_website", side_effect=enrich):
+            main._enrich(leads, set(), limit=2)
+
+        self.assertEqual(
+            {lead["phone"] for lead in leads},
+            {"9876543211", "9876543212"},
+        )
+        self.assertTrue(all(lead["email"] for lead in leads))
+        self.assertTrue(all(lead["website_text"] == "fitness gym" for lead in leads))
+
+    def test_supplier_is_rejected_without_wasting_enrichment_time(self):
+        lead = {
+            "company": "Unknown Sports Flooring Manufacturer",
+            "phone": "9876543210",
+            "website": "https://supplier.example",
+        }
+        with patch("main._enrich") as enrich:
+            qualified = main._qualify_candidates(
+                [lead],
+                "Powerful",
+                {"9876543210"},
+            )
+
+        self.assertEqual(qualified, [])
+        enrich.assert_not_called()
+
     def test_irrelevant_business_fails_closed(self):
         qualified, _, reason = qualify_lead(
             {
