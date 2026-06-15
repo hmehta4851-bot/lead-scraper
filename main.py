@@ -18,6 +18,8 @@ from config import (
     MAX_LEADS_PER_SOURCE_PER_VERTICAL,
     MAX_RUN_MINUTES,
     MAX_SAME_CITY_ROUNDS,
+    MIN_FRESH_LEADS_PER_ROUND,
+    MIN_PRIMARY_CITY_ROUNDS,
     NO_PROGRESS_ROUNDS_BEFORE_NEXT_CITY,
     SHEET_HEADERS,
     SHEET_ID,
@@ -424,14 +426,15 @@ def should_add_next_town(
     city_offset: int,
     round_number: int,
     no_progress_rounds: int,
+    fresh_leads: int = 0,
 ) -> bool:
-    """Give the day's first city every keyword round before expanding."""
+    """Expand through nearby towns when the current city has low fresh yield."""
+    minimum_rounds = MIN_PRIMARY_CITY_ROUNDS if city_offset == 0 else 1
+    if round_number < minimum_rounds:
+        return False
     return (
         no_progress_rounds >= NO_PROGRESS_ROUNDS_BEFORE_NEXT_CITY
-        and (
-            city_offset > 0
-            or round_number >= MAX_SAME_CITY_ROUNDS
-        )
+        or fresh_leads < MIN_FRESH_LEADS_PER_ROUND
     )
 
 
@@ -714,20 +717,23 @@ def main() -> int:
                                 f"[NOTIFY WARN] Progress notification failed: {exc}"
                             )
 
-                if total_added == round_start_total:
+                fresh_leads = total_added - round_start_total
+                if fresh_leads == 0:
                     no_progress_rounds += 1
-                    if should_add_next_town(
-                        city_offset,
-                        round_number,
-                        no_progress_rounds,
-                    ):
-                        print(
-                            f"[CITY GROUP] {city} added no new qualified "
-                            "leads in a complete round; adding the next town."
-                        )
-                        break
                 else:
                     no_progress_rounds = 0
+                if should_add_next_town(
+                    city_offset,
+                    round_number,
+                    no_progress_rounds,
+                    fresh_leads,
+                ):
+                    print(
+                        f"[CITY GROUP] {city} added {fresh_leads} fresh "
+                        "qualified leads in the round; adding the next "
+                        "scheduled town to protect daily volume."
+                    )
+                    break
             if budget_exhausted:
                 break
 

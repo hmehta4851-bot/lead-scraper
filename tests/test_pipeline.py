@@ -210,27 +210,39 @@ class PipelineTests(unittest.TestCase):
             )
         )
 
-    def test_first_city_receives_every_keyword_round(self):
-        for round_number in range(1, main.MAX_SAME_CITY_ROUNDS):
-            self.assertFalse(
-                main.should_add_next_town(
-                    city_offset=0,
-                    round_number=round_number,
-                    no_progress_rounds=1,
-                )
-            )
-        self.assertTrue(
+    def test_primary_city_gets_two_full_rounds_before_low_yield_expansion(self):
+        self.assertFalse(
             main.should_add_next_town(
                 city_offset=0,
-                round_number=main.MAX_SAME_CITY_ROUNDS,
+                round_number=1,
                 no_progress_rounds=1,
+                fresh_leads=0,
             )
         )
         self.assertTrue(
             main.should_add_next_town(
+                city_offset=0,
+                round_number=2,
+                no_progress_rounds=0,
+                fresh_leads=7,
+            )
+        )
+        self.assertFalse(
+            main.should_add_next_town(
+                city_offset=0,
+                round_number=2,
+                no_progress_rounds=0,
+                fresh_leads=8,
+            )
+        )
+
+    def test_secondary_town_expands_after_one_low_yield_round(self):
+        self.assertTrue(
+            main.should_add_next_town(
                 city_offset=1,
                 round_number=1,
-                no_progress_rounds=1,
+                no_progress_rounds=0,
+                fresh_leads=7,
             )
         )
 
