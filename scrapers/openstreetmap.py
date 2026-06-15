@@ -158,6 +158,7 @@ def search(keyword: str, city: str, max_results: int = 15) -> list[dict]:
             )
     except Exception as exc:
         print(f"  [OpenStreetMap] Error: {exc}")
+        raise
 
     print(f"  [OpenStreetMap] {len(leads)} results — {keyword} in {city}")
     return leads

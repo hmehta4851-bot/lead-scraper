@@ -35,6 +35,7 @@ SOURCE_CANARY_KEYWORDS = {
 
 MIN_PRODUCTIVE_SOURCES = 2
 MIN_PRODUCTIVE_GROUPS = 2
+SOURCE_PROBE_ATTEMPTS = 2
 
 _DEGRADED_MARKERS = (
     " error:",
@@ -59,37 +60,51 @@ def probe_sources(
     for source_name, search in registry:
         source_keyword = SOURCE_CANARY_KEYWORDS.get(source_name, keyword)
         started = time.monotonic()
-        captured = io.StringIO()
         leads = []
         error = ""
-        try:
-            with contextlib.redirect_stdout(captured):
-                leads = (
-                    search(
-                        source_keyword,
-                        city,
-                        max_results=max_results,
+        outputs = []
+        status = "failed"
+        attempts = 0
+        for attempt in range(1, SOURCE_PROBE_ATTEMPTS + 1):
+            attempts = attempt
+            captured = io.StringIO()
+            error = ""
+            try:
+                with contextlib.redirect_stdout(captured):
+                    leads = (
+                        search(
+                            source_keyword,
+                            city,
+                            max_results=max_results,
+                        )
+                        or []
                     )
-                    or []
-                )
-        except Exception as exc:
-            error = f"{type(exc).__name__}: {exc}"
-        output = captured.getvalue().strip()
-        lowered = f" {output.casefold()}"
-        if error:
-            status = "failed"
-        elif any(marker in lowered for marker in _DEGRADED_MARKERS):
-            status = "degraded"
-        elif leads:
-            status = "productive"
-        else:
-            status = "completed_zero"
+            except Exception as exc:
+                error = f"{type(exc).__name__}: {exc}"
+            output = captured.getvalue().strip()
+            if output:
+                outputs.append(output)
+            lowered = f" {output.casefold()}"
+            if error:
+                status = "failed"
+            elif any(marker in lowered for marker in _DEGRADED_MARKERS):
+                status = "degraded"
+            elif leads:
+                status = "productive"
+            else:
+                status = "completed_zero"
+            if status not in {"failed", "degraded"}:
+                break
+            if attempt < SOURCE_PROBE_ATTEMPTS:
+                time.sleep(2)
+        output = "\n".join(outputs)
         results.append(
             {
                 "source": source_name,
                 "group": SOURCE_GROUPS.get(source_name, "other"),
                 "keyword": source_keyword,
                 "status": status,
+                "attempts": attempts,
                 "results": len(leads),
                 "seconds": round(time.monotonic() - started, 2),
                 "error": error,
@@ -137,14 +152,18 @@ def format_report(report: dict) -> str:
             + (", ".join(report["productive_groups"]) or "none")
         ),
         "",
-        "| Source | Group | Canary | Status | Results | Seconds |",
-        "|---|---|---|---:|---:|---:|",
+        (
+            "| Source | Group | Canary | Status | Attempts | "
+            "Results | Seconds |"
+        ),
+        "|---|---|---|---:|---:|---:|---:|",
     ]
     for source in report["sources"]:
         lines.append(
             f"| {source['source']} | {source['group']} | "
             f"{source['keyword']} | "
-            f"{source['status']} | {source['results']} | "
+            f"{source['status']} | {source['attempts']} | "
+            f"{source['results']} | "
             f"{source['seconds']} |"
         )
     return "\n".join(lines) + "\n"

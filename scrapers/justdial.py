@@ -50,7 +50,7 @@ def search(keyword: str, city: str, max_results: int = 20) -> list:
         resp = requests.get(url, headers=HEADERS, timeout=20, allow_redirects=True)
         if resp.status_code != 200:
             print(f"  [JustDial] HTTP {resp.status_code} — skipped")
-            return leads
+            raise RuntimeError(f"JustDial HTTP {resp.status_code}")
 
         soup = BeautifulSoup(resp.text, "html.parser")
 
@@ -135,5 +135,6 @@ def search(keyword: str, city: str, max_results: int = 20) -> list:
 
     except Exception as e:
         print(f"  [JustDial] Error: {e}")
+        raise
 
     return leads

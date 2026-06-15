@@ -54,9 +54,34 @@ class SourceReadinessTests(unittest.TestCase):
             ("Google Maps", successful),
         )
         report = probe_sources("gym", "Mumbai", registry)
-        self.assertEqual(len(attempted), 4)
+        self.assertEqual(len(attempted), 5)
         self.assertEqual(report["sources"][0]["status"], "failed")
+        self.assertEqual(report["sources"][0]["attempts"], 2)
         self.assertTrue(report["ready"])
+
+    def test_degraded_source_is_retried_and_can_recover(self):
+        calls = []
+
+        def flaky(*args, **kwargs):
+            calls.append("flaky")
+            if len(calls) == 1:
+                print("[Source] Error: temporary")
+                return []
+            return [{"company": "Recovered Buyer"}]
+
+        productive = lambda *args, **kwargs: [{"company": "Buyer"}]
+        report = probe_sources(
+            "gym",
+            "Mumbai",
+            (
+                ("Sulekha", flaky),
+                ("DuckDuckGo", productive),
+            ),
+        )
+        self.assertTrue(report["ready"])
+        self.assertEqual(calls, ["flaky", "flaky"])
+        self.assertEqual(report["sources"][0]["status"], "productive")
+        self.assertEqual(report["sources"][0]["attempts"], 2)
 
 
 if __name__ == "__main__":

@@ -64,7 +64,7 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
         resp = requests.get(url, headers=HEADERS, timeout=15, allow_redirects=True)
         if resp.status_code != 200:
             print(f"  [DuckDuckGo] HTTP {resp.status_code}")
-            return leads
+            raise RuntimeError(f"DuckDuckGo HTTP {resp.status_code}")
 
         soup = BeautifulSoup(resp.text, "html.parser")
         results = soup.select(".result__body") or soup.select(".result")
@@ -131,5 +131,6 @@ def search(keyword: str, city: str, max_results: int = 15) -> list:
 
     except Exception as e:
         print(f"  [DuckDuckGo] Error: {e}")
+        raise
 
     return leads

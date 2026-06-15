@@ -64,7 +64,7 @@ def search(keyword: str, city: str, max_results: int = 15) -> list[dict]:
         response = requests.get(url, headers=HEADERS, timeout=15)
         if response.status_code != 200:
             print(f"  [Yahoo] HTTP {response.status_code}")
-            return leads
+            raise RuntimeError(f"Yahoo HTTP {response.status_code}")
 
         soup = BeautifulSoup(response.text, "html.parser")
         for result in soup.select("div.algo, div.dd.algo"):
@@ -111,6 +111,7 @@ def search(keyword: str, city: str, max_results: int = 15) -> list[dict]:
             )
     except Exception as exc:
         print(f"  [Yahoo] Error: {exc}")
+        raise
 
     print(f"  [Yahoo] {len(leads)} results — {keyword} in {city}")
     return leads

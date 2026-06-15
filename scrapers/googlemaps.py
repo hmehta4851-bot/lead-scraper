@@ -40,7 +40,7 @@ def search(keyword: str, city: str, max_results: int = 40) -> list:
         if not loaded:
             if last_error:
                 print(f"  [GoogleMaps] Navigation failed after retry: {last_error}")
-            return leads
+            raise RuntimeError("Google Maps did not expose a results feed")
 
         # Scroll the results panel to load more listings
         try:
@@ -123,5 +123,6 @@ def search(keyword: str, city: str, max_results: int = 40) -> list:
 
     except Exception as e:
         print(f"  [GoogleMaps] Error: {e}")
+        raise
 
     return leads
