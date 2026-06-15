@@ -4,8 +4,8 @@
   "exhausted_tier1": false,
   "exhausted_tier2": false,
   "keyword_cursors": {
-    "Playful::EPDM Playground / Wet Pour Flooring": 11,
-    "Playful::EPDM Granules / SBR Granules / PU Binder": 11,
+    "Playful::EPDM Playground / Wet Pour Flooring": 12,
+    "Playful::EPDM Granules / SBR Granules / PU Binder": 12,
     "Graceful::Football Turf / Box Cricket Turnkey": 4,
     "Graceful::Artificial Cricket Pitch / Cricket Turf": 4,
     "Powerful::Gym Astro Turf / Sled Track Turf": 5,
@@ -25,8 +25,8 @@
   },
   "last_transition": "",
   "sku_cursors": {
-    "Playful::EPDM Playground / Wet Pour Flooring": 2,
-    "Playful::EPDM Granules / SBR Granules / PU Binder": 2,
+    "Playful::EPDM Playground / Wet Pour Flooring": 3,
+    "Playful::EPDM Granules / SBR Granules / PU Binder": 3,
     "Graceful::Turf Accessories": 1,
     "Graceful::Football Turf / Box Cricket Turnkey": 1,
     "Powerful::Gym Astro Turf / Sled Track Turf": 1,
@@ -43,7 +43,7 @@
     "Powerful::Gym Rubber Tiles / Laminate Tiles / Mats": 1
   },
   "buyer_cursors": {
-    "Playful": 22,
+    "Playful": 24,
     "Graceful": 21,
     "Powerful": 20,
     "Joyful": 20,
