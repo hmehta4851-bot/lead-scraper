@@ -7,3 +7,5 @@ __pycache__/
 .playwright-mcp/
 *.tar.gz
 *.tar
+source-readiness.json
+source-readiness.md

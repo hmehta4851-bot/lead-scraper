@@ -1,0 +1,166 @@
+name: Sunzone Prospect Flow - Advance Readiness Patrol
+
+on:
+  schedule:
+    # Evening check catches configuration, credential, Sheet and source issues
+    # before the next sales day. Morning check confirms conditions before run.
+    - cron: "7 15 * * 0-5"  # 8:37 PM IST Sun-Fri
+    - cron: "37 0 * * 1-6"  # 6:07 AM IST Mon-Sat
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: sunzone-readiness-patrol
+  cancel-in-progress: true
+
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      NOTIFY_EMAIL: "hmehta4851@gmail.com"
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Prepare private temporary directory
+        run: |
+          private_tmp="$RUNNER_TEMP/sunzone-private-tmp"
+          mkdir -p "$private_tmp"
+          chmod 700 "$private_tmp"
+          echo "TMPDIR=$private_tmp" >> "$GITHUB_ENV"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run automated safety tests
+        run: python -m unittest discover -s tests -q
+
+      - name: Install Playwright browser
+        run: python -m playwright install chromium --with-deps
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
+        with:
+          workload_identity_provider: "projects/505761337329/locations/global/workloadIdentityPools/github-actions/providers/github-actions"
+          service_account: "lead-scraper@turnkey-pottery-499205-u2.iam.gserviceaccount.com"
+
+      - name: Verify configuration, Sheet and Gmail
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python preflight.py
+
+      - name: Probe all 11 sources without writing leads
+        id: sources
+        continue-on-error: true
+        run: |
+          python source_readiness.py \
+            --city "Mumbai, Maharashtra" \
+            --keyword "gym"
+
+      - name: Upload readiness evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-readiness-${{ github.run_id }}
+          path: |
+            source-readiness.json
+            source-readiness.md
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Send advance readiness email
+        if: always()
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          SOURCE_OUTCOME: ${{ steps.sources.outcome }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          python3 - <<'EOF'
+          import os
+          import smtplib
+          import time
+          from email.mime.text import MIMEText
+          from pathlib import Path
+
+          report_path = Path("source-readiness.md")
+          report = (
+              report_path.read_text(encoding="utf-8")
+              if report_path.exists()
+              else "Source probe did not produce a report."
+          )
+          source_ok = os.environ.get("SOURCE_OUTCOME") == "success"
+          job_ok = os.environ.get("JOB_STATUS") == "success"
+          ready = source_ok and job_ok
+          subject = (
+              "[Sunzone Prospect Flow] Advance readiness confirmed"
+              if ready
+              else "[Sunzone Prospect Flow] Advance readiness warning"
+          )
+          guidance = (
+              "All automation checks passed. No routine action is required."
+              if ready
+              else (
+                  "A readiness check detected degraded conditions before the "
+                  "sales-day run. The daily workflow and watchdog remain active, "
+                  "and the technical evidence is attached to this GitHub run."
+              )
+          )
+          body = (
+              f"{guidance}\n\n{report}\n"
+              "Technical review:\n"
+              "https://github.com/hm0163983-sudo/lead-scraper/actions\n"
+          )
+          msg = MIMEText(body)
+          msg["Subject"] = subject
+          msg["From"] = os.environ["GMAIL_USER"]
+          msg["To"] = os.environ["NOTIFY_EMAIL"]
+          last_error = None
+          for attempt in range(1, 4):
+              try:
+                  with smtplib.SMTP_SSL(
+                      "smtp.gmail.com", 465, timeout=30
+                  ) as server:
+                      server.login(
+                          os.environ["GMAIL_USER"],
+                          os.environ["GMAIL_APP_PASSWORD"],
+                      )
+                      server.sendmail(
+                          os.environ["GMAIL_USER"],
+                          [os.environ["NOTIFY_EMAIL"]],
+                          msg.as_string(),
+                      )
+                  print("Advance readiness email sent.")
+                  break
+              except Exception as exc:
+                  last_error = exc
+                  print(
+                      f"Readiness email attempt {attempt}/3 failed: {exc}"
+                  )
+                  if attempt < 3:
+                      time.sleep(10)
+          else:
+              raise SystemExit(
+                  f"Readiness email could not be sent: {last_error}"
+              )
+          EOF
+
+      - name: Fail patrol when source diversity is degraded
+        if: steps.sources.outcome != 'success'
+        run: |
+          echo "The 11-source canary did not meet the diversity threshold."
+          exit 1

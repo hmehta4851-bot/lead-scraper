@@ -19,6 +19,8 @@ MIN_FRESH_LEADS_PER_ROUND = 8
 SOURCE_RESULT_LIMIT = 20
 SOURCE_LEAD_CAP = 20
 MAX_LEADS_PER_SOURCE_PER_VERTICAL = 25
+SOURCE_ATTEMPTS = 2
+SOURCE_RETRY_DELAY_SECONDS = 3
 
 with Path(__file__).with_name("india_cities.json").open(encoding="utf-8") as handle:
     _CITY_DATA = json.load(handle)

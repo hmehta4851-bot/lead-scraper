@@ -19,6 +19,7 @@ from config import (
     SHEET_HEADERS,
     SHEET_ID,
     SOURCE_LEAD_CAP,
+    SOURCE_ATTEMPTS,
     SOURCE_RESULT_LIMIT,
     SUPPLIER_SIGNALS,
     TARGET_LEADS_PER_VERTICAL,
@@ -118,6 +119,10 @@ def check_static_configuration() -> list[str]:
             MAX_LEADS_PER_SOURCE_PER_VERTICAL,
             25,
         ),
+        "source attempts": (
+            SOURCE_ATTEMPTS,
+            2,
+        ),
     }
     policy_errors = [
         f"{name}: expected {expected}, found {actual}"
@@ -127,6 +132,10 @@ def check_static_configuration() -> list[str]:
     if policy_errors:
         raise RuntimeError(
             "Sunzone operating policy drift: " + "; ".join(policy_errors)
+        )
+    if MAX_LEADS_PER_SOURCE_PER_VERTICAL * 2 > TARGET_LEADS_PER_VERTICAL:
+        raise RuntimeError(
+            "A single source can supply more than half of a vertical quota"
         )
     missing_buyer_signals = [
         vertical
@@ -188,6 +197,8 @@ def check_static_configuration() -> list[str]:
         "8 complete keyword rounds before any town expansion",
         "strict buyer, supplier and competitor qualification rules",
         "25-lead daily source cap per vertical",
+        "two-attempt isolated source recovery",
+        "at least two sources required to satisfy a vertical quota",
         f"{len(INDIA_CITY_ROTATION):,} unique towns",
         f"{maharashtra_count} Maharashtra towns first, beginning with Mumbai",
         f"{keyword_count:,} validated product keywords",
@@ -247,6 +258,9 @@ def check_workflow_policy() -> list[str]:
     root = Path(__file__).resolve().parent
     daily = (root / ".github/workflows/daily.yml").read_text()
     watchdog = (root / ".github/workflows/watchdog.yml").read_text()
+    readiness = (
+        root / ".github/workflows/readiness-patrol.yml"
+    ).read_text()
     required_daily = [
         'cron: "17 2 * * 1-6"',
         "cancel-in-progress: false",
@@ -268,6 +282,16 @@ def check_workflow_policy() -> list[str]:
         "Recovery dispatch failed after three attempts.",
         "steps.check.outputs.recovery_exhausted == 'true'",
     ]
+    required_readiness = [
+        'cron: "7 15 * * 0-5"',
+        'cron: "37 0 * * 1-6"',
+        "Run automated safety tests",
+        "Verify configuration, Sheet and Gmail",
+        "Probe all 11 sources without writing leads",
+        "python source_readiness.py",
+        "Advance readiness email sent.",
+        "Fail patrol when source diversity is degraded",
+    ]
     missing = [
         f"daily.yml: {value}"
         for value in required_daily
@@ -277,6 +301,11 @@ def check_workflow_policy() -> list[str]:
         f"watchdog.yml: {value}"
         for value in required_watchdog
         if value not in watchdog
+    )
+    missing.extend(
+        f"readiness-patrol.yml: {value}"
+        for value in required_readiness
+        if value not in readiness
     )
     if missing:
         raise RuntimeError(
@@ -288,6 +317,7 @@ def check_workflow_policy() -> list[str]:
         "four same-day missed-run and failure recovery checks",
         "three-attempt API, dispatch, email and state synchronization",
         "manual cancellation remains stopped for the day",
+        "evening and pre-run 11-source readiness patrols",
     ]
 
 

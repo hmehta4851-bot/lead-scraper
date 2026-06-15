@@ -25,7 +25,9 @@ from config import (
     SHEET_HEADERS,
     SHEET_ID,
     SOURCE_LEAD_CAP,
+    SOURCE_ATTEMPTS,
     SOURCE_RESULT_LIMIT,
+    SOURCE_RETRY_DELAY_SECONDS,
     TARGET_LEADS_PER_VERTICAL,
     iter_products,
 )
@@ -180,7 +182,12 @@ def run_all_sources(
     """Attempt every configured source; one failure never blocks another."""
     source_registry = source_registry or SOURCE_REGISTRY
     leads: list[dict] = []
-    telemetry = {"attempted": [], "failed": {}, "raw_counts": {}}
+    telemetry = {
+        "attempted": [],
+        "attempt_counts": {},
+        "failed": {},
+        "raw_counts": {},
+    }
     for source_name, search in source_registry:
         telemetry["attempted"].append(source_name)
         source_keyword = (
@@ -189,25 +196,42 @@ def run_all_sources(
             else keyword
         )
         print(f"  [{source_name}] {source_keyword} in {city}")
-        try:
-            found = (
-                search(
-                    source_keyword,
-                    city,
-                    max_results=SOURCE_RESULT_LIMIT,
+        found = []
+        for attempt in range(1, SOURCE_ATTEMPTS + 1):
+            telemetry["attempt_counts"][source_name] = attempt
+            try:
+                found = (
+                    search(
+                        source_keyword,
+                        city,
+                        max_results=SOURCE_RESULT_LIMIT,
+                    )
+                    or []
                 )
-                or []
+                telemetry["failed"].pop(source_name, None)
+                break
+            except Exception as exc:
+                telemetry["failed"][source_name] = (
+                    f"{type(exc).__name__}: {exc}"
+                )
+                print(
+                    f"  [{source_name}] attempt {attempt}/"
+                    f"{SOURCE_ATTEMPTS} failed: {exc}"
+                )
+                if attempt < SOURCE_ATTEMPTS:
+                    time.sleep(SOURCE_RETRY_DELAY_SECONDS)
+        for lead in found:
+            lead.setdefault("source", source_name)
+            lead["search_keyword"] = source_keyword
+        leads.extend(found)
+        telemetry["raw_counts"][source_name] = len(found)
+        if source_name in telemetry["failed"]:
+            print(
+                f"  [{source_name}] FAILED after "
+                f"{SOURCE_ATTEMPTS} attempts"
             )
-            for lead in found:
-                lead.setdefault("source", source_name)
-                lead["search_keyword"] = source_keyword
-            leads.extend(found)
-            telemetry["raw_counts"][source_name] = len(found)
+        else:
             print(f"  [{source_name}] +{len(found)} raw")
-        except Exception as exc:
-            telemetry["failed"][source_name] = f"{type(exc).__name__}: {exc}"
-            telemetry["raw_counts"][source_name] = 0
-            print(f"  [{source_name}] FAILED: {exc}")
         time.sleep(0.5)
     return leads, telemetry
 

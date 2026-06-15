@@ -10,6 +10,8 @@ from config import (
     MAX_CITIES_PER_DAY,
     MAX_LEADS_PER_SOURCE_PER_VERTICAL,
     MAX_SAME_CITY_ROUNDS,
+    SOURCE_ATTEMPTS,
+    TARGET_LEADS_PER_VERTICAL,
     VERTICALS,
     iter_products,
 )
@@ -62,12 +64,22 @@ class PipelineTests(unittest.TestCase):
         watchdog = (
             repo_root / ".github/workflows/watchdog.yml"
         ).read_text()
+        readiness = (
+            repo_root / ".github/workflows/readiness-patrol.yml"
+        ).read_text()
 
         self.assertIn('cron: "17 2 * * 1-6"', daily)
         self.assertIn('cron: "47 2 * * 1-6"', watchdog)
         self.assertIn('cron: "17 3 * * 1-6"', watchdog)
         self.assertIn('cron: "17 5 * * 1-6"', watchdog)
         self.assertIn('cron: "17 9 * * 1-6"', watchdog)
+        self.assertIn('cron: "7 15 * * 0-5"', readiness)
+        self.assertIn('cron: "37 0 * * 1-6"', readiness)
+        self.assertIn("python source_readiness.py", readiness)
+        self.assertIn(
+            "Probe all 11 sources without writing leads",
+            readiness,
+        )
         self.assertIn("gh workflow run daily.yml", watchdog)
         self.assertIn('"cancelled"', watchdog)
         self.assertIn("genuine_failures", watchdog)
@@ -118,6 +130,10 @@ class PipelineTests(unittest.TestCase):
             "three-attempt API, dispatch, email and state synchronization",
             workflow_checks,
         )
+        self.assertIn(
+            "evening and pre-run 11-source readiness patrols",
+            workflow_checks,
+        )
         daily = (
             Path(__file__).resolve().parents[1]
             / ".github/workflows/daily.yml"
@@ -163,9 +179,38 @@ class PipelineTests(unittest.TestCase):
             leads, telemetry = main.run_all_sources("turf", "Mumbai")
 
         self.assertEqual(leads, [])
-        self.assertEqual(len(attempted), 11)
+        self.assertEqual(len(attempted), 11 + SOURCE_ATTEMPTS - 1)
         self.assertEqual(len(telemetry["attempted"]), 11)
         self.assertEqual(list(telemetry["failed"]), ["Source 3"])
+        self.assertEqual(
+            telemetry["attempt_counts"]["Source 3"],
+            SOURCE_ATTEMPTS,
+        )
+
+    def test_source_recovers_on_second_attempt_without_blocking_others(self):
+        calls = Counter()
+
+        def flaky(keyword, city, max_results):
+            calls["Flaky"] += 1
+            if calls["Flaky"] == 1:
+                raise TimeoutError("temporary block")
+            return [{"company": "Recovered Gym", "phone": "9876543210"}]
+
+        def stable(keyword, city, max_results):
+            calls["Stable"] += 1
+            return []
+
+        with patch("main.time.sleep", return_value=None):
+            leads, telemetry = main.run_all_sources(
+                "gym",
+                "Mumbai",
+                source_registry=(("Flaky", flaky), ("Stable", stable)),
+            )
+
+        self.assertEqual(calls, Counter({"Flaky": 2, "Stable": 1}))
+        self.assertEqual([lead["source"] for lead in leads], ["Flaky"])
+        self.assertEqual(telemetry["failed"], {})
+        self.assertEqual(telemetry["attempt_counts"]["Flaky"], 2)
 
     def test_competitor_is_blocked_by_company_or_domain(self):
         self.assertTrue(
@@ -559,6 +604,12 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(
             [lead["company"] for lead in accepted],
             ["Gym One", "Gym Three"],
+        )
+
+    def test_source_cap_requires_multiple_sources_for_full_quota(self):
+        self.assertLessEqual(
+            MAX_LEADS_PER_SOURCE_PER_VERTICAL * 2,
+            TARGET_LEADS_PER_VERTICAL,
         )
 
     def test_city_quota_fails_closed_if_one_vertical_is_below_50(self):
