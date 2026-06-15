@@ -41,6 +41,19 @@ class PipelineTests(unittest.TestCase):
         self.assertIn('cron: "17 9 * * 1-6"', watchdog)
         self.assertIn("gh workflow run daily.yml", watchdog)
 
+    def test_status_workflow_is_read_only_and_aggregate_only(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        status = (
+            repo_root / ".github/workflows/status.yml"
+        ).read_text()
+
+        self.assertIn("contents: read", status)
+        self.assertNotIn("contents: write", status)
+        self.assertIn("load_daily_snapshot", status)
+        self.assertIn("VERTICAL_COUNTS", status)
+        self.assertIn("SOURCE_COUNTS", status)
+        self.assertNotIn("append_leads", status)
+
     def test_all_sources_are_attempted_despite_failures(self):
         attempted = []
 

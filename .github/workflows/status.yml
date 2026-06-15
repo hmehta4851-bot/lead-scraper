@@ -1,0 +1,78 @@
+name: Sunzone Prospect Flow - Read-Only Status
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
+        with:
+          workload_identity_provider: "projects/505761337329/locations/global/workloadIdentityPools/github-actions/providers/github-actions"
+          service_account: "lead-scraper@turnkey-pottery-499205-u2.iam.gserviceaccount.com"
+
+      - name: Report aggregate daily status
+        run: |
+          python - <<'PY'
+          from collections import Counter
+          from datetime import date
+
+          from config import SHEET_ID, TARGET_LEADS_PER_VERTICAL, VERTICALS
+          from sheets import load_daily_snapshot
+
+          tabs = [config["tab"] for config in VERTICALS.values()]
+          _, counts, source_counts = load_daily_snapshot(
+              SHEET_ID,
+              tabs,
+              date.today(),
+              city=None,
+          )
+
+          print(f"Sunzone Prospect Flow aggregate status for {date.today()}")
+          print("VERTICAL_COUNTS")
+          for vertical in VERTICALS:
+              count = counts.get(vertical, 0)
+              state = "COMPLETE" if count >= TARGET_LEADS_PER_VERTICAL else "IN_PROGRESS"
+              print(
+                  f"{vertical}={count}/{TARGET_LEADS_PER_VERTICAL} {state}"
+              )
+
+          print("SOURCE_COUNTS")
+          totals = Counter()
+          for per_vertical in source_counts.values():
+              totals.update(per_vertical)
+          for source, count in totals.most_common():
+              print(f"{source}={count}")
+
+          print(f"TOTAL={sum(counts.values())}")
+          print(
+              "ALL_VERTICALS_COMPLETE="
+              + str(
+                  all(
+                      counts.get(vertical, 0) >= TARGET_LEADS_PER_VERTICAL
+                      for vertical in VERTICALS
+                  )
+              )
+          )
+          PY
