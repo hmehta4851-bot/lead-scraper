@@ -143,6 +143,12 @@ def check_google_sheet() -> list[str]:
             raise RuntimeError(f"Missing Google Sheet tab: {tab_name}")
         headers = worksheet.row_values(1)
         if headers != SHEET_HEADERS:
+            if headers[:len(SHEET_HEADERS)] == SHEET_HEADERS:
+                checks.append(
+                    f"{vertical}: {tab_name} accessible with "
+                    f"{len(headers) - len(SHEET_HEADERS)} management column(s)"
+                )
+                continue
             if not _repairable_header_drift(headers):
                 raise RuntimeError(
                     f"Unsafe header structure in {tab_name}: "

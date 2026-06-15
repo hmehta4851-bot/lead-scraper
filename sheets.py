@@ -33,7 +33,7 @@ def get_client():
 
 def ensure_headers(ws, headers):
     existing = ws.row_values(1)
-    if existing != headers:
+    if existing[:len(headers)] != headers:
         ws.update("A1", [headers])
 
 

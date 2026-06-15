@@ -49,6 +49,13 @@ class PipelineTests(unittest.TestCase):
             preflight._repairable_header_drift(structurally_changed)
         )
 
+    def test_management_columns_can_follow_automation_headers(self):
+        headers = [*preflight.SHEET_HEADERS, "Comments"]
+        self.assertEqual(
+            headers[:len(preflight.SHEET_HEADERS)],
+            preflight.SHEET_HEADERS,
+        )
+
     def test_workflow_has_early_missed_schedule_recovery(self):
         repo_root = Path(__file__).resolve().parents[1]
         daily = (repo_root / ".github/workflows/daily.yml").read_text()
