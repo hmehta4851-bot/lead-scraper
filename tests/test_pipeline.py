@@ -6,7 +6,13 @@ from unittest.mock import patch
 
 import main
 import preflight
-from config import MAX_LEADS_PER_SOURCE_PER_VERTICAL, VERTICALS, iter_products
+from config import (
+    MAX_CITIES_PER_DAY,
+    MAX_LEADS_PER_SOURCE_PER_VERTICAL,
+    MAX_SAME_CITY_ROUNDS,
+    VERTICALS,
+    iter_products,
+)
 from keyword_library import (
     add_buyer_intent,
     load_keyword_library,
@@ -58,6 +64,13 @@ class PipelineTests(unittest.TestCase):
         self.assertIn("gh workflow run daily.yml", watchdog)
         self.assertIn('"cancelled"', watchdog)
         self.assertIn("genuine_failures", watchdog)
+        self.assertIn(
+            "Latest run was manually cancelled — staying stopped today.",
+            watchdog,
+        )
+
+    def test_daily_collection_has_bounded_low_yield_city_fallback(self):
+        self.assertEqual(MAX_CITIES_PER_DAY, 20)
 
     def test_status_workflow_is_read_only_and_aggregate_only(self):
         repo_root = Path(__file__).resolve().parents[1]
@@ -228,11 +241,11 @@ class PipelineTests(unittest.TestCase):
             )
         )
 
-    def test_primary_city_gets_two_full_rounds_before_low_yield_expansion(self):
+    def test_city_is_never_abandoned_before_all_keyword_rounds(self):
         self.assertFalse(
             main.should_add_next_town(
                 city_offset=0,
-                round_number=1,
+                round_number=MAX_SAME_CITY_ROUNDS - 1,
                 no_progress_rounds=1,
                 fresh_leads=0,
             )
@@ -240,27 +253,23 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(
             main.should_add_next_town(
                 city_offset=0,
-                round_number=2,
+                round_number=MAX_SAME_CITY_ROUNDS,
                 no_progress_rounds=0,
-                fresh_leads=7,
-            )
-        )
-        self.assertFalse(
-            main.should_add_next_town(
-                city_offset=0,
-                round_number=2,
-                no_progress_rounds=0,
-                fresh_leads=8,
+                fresh_leads=0,
             )
         )
 
-    def test_secondary_town_expands_after_one_low_yield_round(self):
+    def test_city_expansion_requires_a_vertical_below_25(self):
         self.assertTrue(
-            main.should_add_next_town(
-                city_offset=1,
-                round_number=1,
-                no_progress_rounds=0,
-                fresh_leads=7,
+            main.city_expansion_needed(
+                {vertical: 25 for vertical in VERTICALS} | {"Joyful": 15},
+                VERTICALS,
+            )
+        )
+        self.assertFalse(
+            main.city_expansion_needed(
+                {vertical: 25 for vertical in VERTICALS},
+                VERTICALS,
             )
         )
 

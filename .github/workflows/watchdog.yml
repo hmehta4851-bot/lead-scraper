@@ -102,6 +102,10 @@ jobs:
             echo "need_rerun=false" >> $GITHUB_OUTPUT
             echo "recovery_exhausted=false" >> $GITHUB_OUTPUT
             echo "Run is still in progress — nothing to do."
+          elif [ "$STATUS" = "completed" ] && [ "$CONCLUSION" = "cancelled" ]; then
+            echo "need_rerun=false" >> $GITHUB_OUTPUT
+            echo "recovery_exhausted=false" >> $GITHUB_OUTPUT
+            echo "Latest run was manually cancelled — staying stopped today."
           elif [ "$ATTEMPTS" -ge 3 ]; then
             echo "need_rerun=false" >> $GITHUB_OUTPUT
             echo "recovery_exhausted=true" >> $GITHUB_OUTPUT

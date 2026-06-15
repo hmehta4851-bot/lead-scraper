@@ -18,6 +18,7 @@ from config import (
     MAX_LEADS_PER_SOURCE_PER_VERTICAL,
     MAX_RUN_MINUTES,
     MAX_SAME_CITY_ROUNDS,
+    MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION,
     MIN_FRESH_LEADS_PER_ROUND,
     MIN_PRIMARY_CITY_ROUNDS,
     NO_PROGRESS_ROUNDS_BEFORE_NEXT_CITY,
@@ -448,20 +449,23 @@ def vertical_quotas_met(
     return all(vertical_counts.get(vertical, 0) >= target for vertical in verticals)
 
 
+def city_expansion_needed(
+    vertical_counts: Counter | dict[str, int],
+    verticals,
+    minimum: int = MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION,
+) -> bool:
+    """Use another town only while a vertical remains below the daily floor."""
+    return any(vertical_counts.get(vertical, 0) < minimum for vertical in verticals)
+
+
 def should_add_next_town(
     city_offset: int,
     round_number: int,
     no_progress_rounds: int,
     fresh_leads: int = 0,
 ) -> bool:
-    """Expand through nearby towns when the current city has low fresh yield."""
-    minimum_rounds = MIN_PRIMARY_CITY_ROUNDS if city_offset == 0 else 1
-    if round_number < minimum_rounds:
-        return False
-    return (
-        no_progress_rounds >= NO_PROGRESS_ROUNDS_BEFORE_NEXT_CITY
-        or fresh_leads < MIN_FRESH_LEADS_PER_ROUND
-    )
+    """Never abandon a town merely because one keyword round was slow."""
+    return round_number >= MAX_SAME_CITY_ROUNDS
 
 
 def main() -> int:
@@ -761,13 +765,27 @@ def main() -> int:
                     fresh_leads,
                 ):
                     print(
-                        f"[CITY GROUP] {city} added {fresh_leads} fresh "
-                        "qualified leads in the round; adding the next "
-                        "scheduled town to protect daily volume."
+                        f"[CITY GROUP] Finished all {MAX_SAME_CITY_ROUNDS} "
+                        f"keyword rounds in {city}."
                     )
                     break
             if budget_exhausted:
                 break
+            if not city_expansion_needed(
+                vertical_counts,
+                products_by_vertical,
+            ):
+                print(
+                    "[CITY GROUP] Every vertical has at least "
+                    f"{MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION} "
+                    "qualified leads; stopping without another town."
+                )
+                break
+            print(
+                "[CITY GROUP] At least one vertical remains below "
+                f"{MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION}; "
+                "adding the next scheduled town."
+            )
 
         quotas_met = vertical_quotas_met(
             vertical_counts,
