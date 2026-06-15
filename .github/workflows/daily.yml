@@ -83,6 +83,7 @@ jobs:
 
       - name: Send immediate failure alert
         if: failure()
+        continue-on-error: true
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
@@ -102,10 +103,22 @@ jobs:
           msg["Subject"] = "[Sunzone Prospect Flow] Recovery started automatically"
           msg["From"] = os.environ["GMAIL_USER"]
           msg["To"] = os.environ["NOTIFY_EMAIL"]
-          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-              s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
-              s.sendmail(os.environ["GMAIL_USER"], [os.environ["NOTIFY_EMAIL"]], msg.as_string())
-          print("Failure alert sent.")
+          import time
+          last_error = None
+          for attempt in range(1, 4):
+              try:
+                  with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as s:
+                      s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
+                      s.sendmail(os.environ["GMAIL_USER"], [os.environ["NOTIFY_EMAIL"]], msg.as_string())
+                  print("Failure alert sent.")
+                  break
+              except Exception as exc:
+                  last_error = exc
+                  print(f"Failure alert attempt {attempt}/3 failed: {exc}")
+                  if attempt < 3:
+                      time.sleep(10)
+          else:
+              raise SystemExit(f"Failure alert could not be sent: {last_error}")
           EOF
 
       - name: Commit state.json
@@ -115,5 +128,14 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add state.json
           git diff --staged --quiet || git commit -m "chore: update city rotation state [skip ci]"
-          git pull --rebase origin main
-          git push
+          for attempt in 1 2 3; do
+            if git pull --rebase origin main && git push; then
+              echo "State synchronized successfully."
+              exit 0
+            fi
+            echo "State synchronization attempt $attempt/3 failed."
+            git rebase --abort 2>/dev/null || true
+            sleep $((attempt * 10))
+          done
+          echo "State synchronization failed after three attempts."
+          exit 1

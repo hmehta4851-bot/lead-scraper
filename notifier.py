@@ -1,9 +1,10 @@
 import smtplib
 import os
+import time
 from email.mime.text import MIMEText
 
 
-def send_notification(subject, body):
+def send_notification(subject, body, attempts=3, retry_delay=5):
     gmail_user = os.environ.get("GMAIL_USER", "")
     gmail_pass = os.environ.get("GMAIL_APP_PASSWORD", "")
     to_email = os.environ.get("NOTIFY_EMAIL", "hmehta4851@gmail.com")
@@ -19,13 +20,32 @@ def send_notification(subject, body):
     msg["From"] = gmail_user
     msg["To"] = to_email
 
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(gmail_user, gmail_pass)
-            server.sendmail(gmail_user, [to_email], msg.as_string())
-        print(f"[NOTIFY SENT] {subject}")
-    except Exception as e:
-        print(f"[NOTIFY ERROR] {e}")
+    last_error = None
+    for attempt in range(1, attempts + 1):
+        try:
+            with smtplib.SMTP_SSL(
+                "smtp.gmail.com",
+                465,
+                timeout=30,
+            ) as server:
+                server.login(gmail_user, gmail_pass)
+                server.sendmail(
+                    gmail_user,
+                    [to_email],
+                    msg.as_string(),
+                )
+            print(f"[NOTIFY SENT] {subject}")
+            return
+        except Exception as exc:
+            last_error = exc
+            print(
+                f"[NOTIFY ERROR] attempt {attempt}/{attempts}: {exc}"
+            )
+            if attempt < attempts:
+                time.sleep(retry_delay)
+    raise RuntimeError(
+        f"Email notification failed after {attempts} attempts: {last_error}"
+    ) from last_error
 
 
 def notify_tier1_exhausted():
@@ -76,6 +96,27 @@ def notify_progress_update(city, completed, total, leads_so_far, elapsed_min):
             f"Leads collected so far: {leads_so_far}\n"
             f"Time elapsed: {elapsed_min} minutes\n\n"
             f"Next update in 15 minutes (or final summary when done)."
+        ),
+    )
+
+
+def notify_existing_completion(city, vertical_counts, vertical_target=50):
+    quota_lines = [
+        f"  {vertical:<20} {count:>3}/{vertical_target}  COMPLETE"
+        for vertical, count in vertical_counts.items()
+    ]
+    send_notification(
+        subject=(
+            f"[Sunzone Prospect Flow] COMPLETION CONFIRMED — {city}"
+        ),
+        body=(
+            "Sunzone Prospect Flow recovery verified that today's approved "
+            "Google Sheet already contains the full qualified-lead target.\n\n"
+            f"City batch: {city}\n\n"
+            "VERTICAL QUOTAS\n"
+            + "\n".join(quota_lines)
+            + "\n\nNo duplicate collection was performed. "
+            "This confirmation closes the recovered run."
         ),
     )
 

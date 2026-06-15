@@ -114,6 +114,10 @@ class PipelineTests(unittest.TestCase):
             "four same-day missed-run and failure recovery checks",
             workflow_checks,
         )
+        self.assertIn(
+            "three-attempt API, dispatch, email and state synchronization",
+            workflow_checks,
+        )
 
     def test_status_workflow_is_read_only_and_aggregate_only(self):
         repo_root = Path(__file__).resolve().parents[1]

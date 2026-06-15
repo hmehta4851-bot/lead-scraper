@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import smtplib
+import time
 from pathlib import Path
 
 from config import (
@@ -252,6 +253,8 @@ def check_workflow_policy() -> list[str]:
         "Run production readiness preflight",
         "Run Sunzone Prospect Flow",
         "Send immediate failure alert",
+        "Failure alert attempt",
+        "State synchronization failed after three attempts.",
     ]
     required_watchdog = [
         'cron: "47 2 * * 1-6"',
@@ -260,6 +263,9 @@ def check_workflow_policy() -> list[str]:
         'cron: "17 9 * * 1-6"',
         "gh workflow run daily.yml",
         "Latest run was manually cancelled — staying stopped today.",
+        "GitHub health lookup attempt",
+        "Recovery dispatch failed after three attempts.",
+        "steps.check.outputs.recovery_exhausted == 'true'",
     ]
     missing = [
         f"daily.yml: {value}"
@@ -279,6 +285,7 @@ def check_workflow_policy() -> list[str]:
     return [
         "7:47 AM IST Mon-Sat automatic collection",
         "four same-day missed-run and failure recovery checks",
+        "three-attempt API, dispatch, email and state synchronization",
         "manual cancellation remains stopped for the day",
     ]
 
@@ -288,8 +295,23 @@ def check_gmail_login() -> list[str]:
     gmail_password = os.environ.get("GMAIL_APP_PASSWORD", "")
     if not gmail_user or not gmail_password:
         raise RuntimeError("Gmail notification secrets are missing")
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=20) as server:
-        server.login(gmail_user, gmail_password)
+    last_error = None
+    for attempt in range(1, 4):
+        try:
+            with smtplib.SMTP_SSL(
+                "smtp.gmail.com",
+                465,
+                timeout=20,
+            ) as server:
+                server.login(gmail_user, gmail_password)
+            break
+        except Exception as exc:
+            last_error = exc
+            if attempt == 3:
+                raise RuntimeError(
+                    "Gmail authentication failed after three attempts"
+                ) from exc
+            time.sleep(5)
     return [f"Gmail authentication valid for {gmail_user}"]
 
 

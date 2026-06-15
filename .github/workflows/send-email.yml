@@ -35,7 +35,7 @@ jobs:
           BODY: ${{ inputs.body }}
         run: |
           python3 - <<'EOF'
-          import smtplib, os
+          import smtplib, os, time
           from email.mime.text import MIMEText
           from email.mime.multipart import MIMEMultipart
 
@@ -53,9 +53,19 @@ jobs:
           # Plain text part
           msg.attach(MIMEText(body, "plain"))
 
-          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-              s.login(user, pwd)
-              s.sendmail(user, [to], msg.as_string())
-
-          print(f"Email sent to {to}: {subj}")
+          last_error = None
+          for attempt in range(1, 4):
+              try:
+                  with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as s:
+                      s.login(user, pwd)
+                      s.sendmail(user, [to], msg.as_string())
+                  print(f"Email sent to {to}: {subj}")
+                  break
+              except Exception as exc:
+                  last_error = exc
+                  print(f"Email attempt {attempt}/3 failed: {exc}")
+                  if attempt < 3:
+                      time.sleep(10)
+          else:
+              raise SystemExit(f"Email could not be sent: {last_error}")
           EOF

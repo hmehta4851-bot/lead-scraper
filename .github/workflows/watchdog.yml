@@ -42,12 +42,23 @@ jobs:
           echo "Checking Sunzone Prospect Flow runs on $TODAY..."
 
           # Get most recent daily scraper run
-          RUNS=$(gh run list \
-            --repo ${{ github.repository }} \
-            --workflow daily.yml \
-            --limit 10 \
-            --json databaseId,status,conclusion,createdAt \
-            --jq "[.[] | select(.createdAt | startswith(\"$TODAY\"))]")
+          RUNS=""
+          for attempt in 1 2 3; do
+            if RUNS=$(gh run list \
+              --repo ${{ github.repository }} \
+              --workflow daily.yml \
+              --limit 10 \
+              --json databaseId,status,conclusion,createdAt \
+              --jq "[.[] | select(.createdAt | startswith(\"$TODAY\"))]"); then
+              break
+            fi
+            echo "GitHub health lookup attempt $attempt/3 failed."
+            sleep $((attempt * 10))
+          done
+          if [ -z "$RUNS" ]; then
+            echo "Could not read today's workflow health after three attempts."
+            exit 1
+          fi
 
           echo "Runs today: $RUNS"
 
@@ -120,49 +131,87 @@ jobs:
           fi
 
       - name: Auto-trigger daily scraper
+        id: dispatch
         if: steps.check.outputs.need_rerun == 'true'
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Triggering Sunzone Prospect Flow (watchdog auto-heal)..."
-          gh workflow run daily.yml --repo ${{ github.repository }}
-          echo "Triggered successfully."
+          for attempt in 1 2 3; do
+            echo "Triggering Sunzone Prospect Flow, attempt $attempt/3..."
+            if gh workflow run daily.yml --repo ${{ github.repository }}; then
+              echo "dispatched=true" >> "$GITHUB_OUTPUT"
+              echo "Triggered successfully."
+              exit 0
+            fi
+            sleep $((attempt * 10))
+          done
+          echo "dispatched=false" >> "$GITHUB_OUTPUT"
+          echo "Recovery dispatch failed after three attempts."
+          exit 1
 
       - name: Send watchdog alert email
-        if: steps.check.outputs.need_rerun == 'true'
+        if: always() && steps.check.outputs.need_rerun == 'true'
+        continue-on-error: true
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          DISPATCHED: ${{ steps.dispatch.outputs.dispatched }}
         run: |
           python3 - <<'EOF'
-          import smtplib, os
+          import smtplib, os, time
           from email.mime.text import MIMEText
+          dispatched = os.environ.get("DISPATCHED") == "true"
+          if dispatched:
+              subject = "[Sunzone Prospect Flow] Automatic recovery run started"
+              action = (
+                  "Action taken: the watchdog automatically started a recovery run.\n\n"
+                  "No action needed from you — the system is healing itself.\n\n"
+                  "Leads will appear in your Google Sheet once the re-triggered run completes."
+              )
+          else:
+              subject = "[Sunzone Prospect Flow] Recovery dispatch will retry"
+              action = (
+                  "The watchdog could not start a recovery run after three GitHub attempts.\n\n"
+                  "The next scheduled watchdog check will try again automatically. "
+                  "Existing Sheet data remains protected."
+              )
           msg = MIMEText(
               "Sunzone Prospect Flow detected an incomplete collection run.\n\n"
-              "Action taken: the watchdog automatically started a recovery run.\n\n"
-              "No action needed from you — the system is healing itself.\n\n"
-              "Leads will appear in your Google Sheet once the re-triggered run completes.\n\n"
-              "─────────────────────────────\n"
+              + action
+              + "\n\n─────────────────────────────\n"
               "Sunzone Prospect Flow Automation\n"
               "Self-healing watchdog system"
           )
-          msg["Subject"] = "[Sunzone Prospect Flow] Automatic recovery run started"
+          msg["Subject"] = subject
           msg["From"] = os.environ["GMAIL_USER"]
           msg["To"] = os.environ["NOTIFY_EMAIL"]
-          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-              s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
-              s.sendmail(os.environ["GMAIL_USER"], [os.environ["NOTIFY_EMAIL"]], msg.as_string())
-          print("Watchdog alert sent.")
+          last_error = None
+          for attempt in range(1, 4):
+              try:
+                  with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as s:
+                      s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
+                      s.sendmail(os.environ["GMAIL_USER"], [os.environ["NOTIFY_EMAIL"]], msg.as_string())
+                  print("Watchdog alert sent.")
+                  break
+              except Exception as exc:
+                  last_error = exc
+                  print(f"Watchdog email attempt {attempt}/3 failed: {exc}")
+                  if attempt < 3:
+                      time.sleep(10)
+          else:
+              raise SystemExit(f"Watchdog alert could not be sent: {last_error}")
           EOF
 
       - name: Send recovery limit alert
-        if: github.event_name == 'workflow_run' && steps.check.outputs.recovery_exhausted == 'true'
+        if: steps.check.outputs.recovery_exhausted == 'true'
+        continue-on-error: true
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: |
           python3 - <<'EOF'
-          import smtplib, os
+          import smtplib, os, time
           from email.mime.text import MIMEText
           msg = MIMEText(
               "Sunzone Prospect Flow attempted automatic recovery three times today, "
@@ -175,8 +224,25 @@ jobs:
           msg["Subject"] = "[Sunzone Prospect Flow] Automatic recovery limit reached"
           msg["From"] = os.environ["GMAIL_USER"]
           msg["To"] = os.environ["NOTIFY_EMAIL"]
-          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
-              s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
-              s.sendmail(os.environ["GMAIL_USER"], [os.environ["NOTIFY_EMAIL"]], msg.as_string())
-          print("Recovery limit alert sent.")
+          last_error = None
+          for attempt in range(1, 4):
+              try:
+                  with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as s:
+                      s.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
+                      s.sendmail(os.environ["GMAIL_USER"], [os.environ["NOTIFY_EMAIL"]], msg.as_string())
+                  print("Recovery limit alert sent.")
+                  break
+              except Exception as exc:
+                  last_error = exc
+                  print(f"Recovery-limit email attempt {attempt}/3 failed: {exc}")
+                  if attempt < 3:
+                      time.sleep(10)
+          else:
+              raise SystemExit(f"Recovery-limit alert could not be sent: {last_error}")
           EOF
+
+      - name: Mark failed recovery dispatch
+        if: always() && steps.check.outputs.need_rerun == 'true' && steps.dispatch.outputs.dispatched != 'true'
+        run: |
+          echo "Recovery dispatch did not succeed; a later watchdog will retry."
+          exit 1

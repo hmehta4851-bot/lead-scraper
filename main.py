@@ -39,6 +39,7 @@ from keyword_library import (
 from qualification import competitor_reasons, qualify_lead
 from notifier import (
     notify_daily_summary,
+    notify_existing_completion,
     notify_progress_update,
     notify_scraper_started,
 )
@@ -530,6 +531,11 @@ def main() -> int:
                 f"Today's city batch is already complete: "
                 f"{', '.join(completed_cities)}"
             )
+            notify_existing_completion(
+                ", ".join(completed_cities),
+                dict(vertical_counts),
+                TARGET_LEADS_PER_VERTICAL,
+            )
             return 0
         if same_day_retry:
             print(
@@ -548,10 +554,7 @@ def main() -> int:
             )
         )
 
-        try:
-            notify_scraper_started(city, len(products_by_vertical))
-        except Exception as exc:
-            print(f"[NOTIFY WARN] Start notification failed: {exc}")
+        notify_scraper_started(city, len(products_by_vertical))
 
         buyer_cursors = state.setdefault("buyer_cursors", {})
         for vertical in products_by_vertical:
@@ -806,6 +809,7 @@ def main() -> int:
             if len(used_cities) == 1
             else f"{used_cities[0]} + {len(used_cities) - 1} towns"
         )
+        summary_delivered = True
         try:
             notify_daily_summary(
                 city_summary,
@@ -820,6 +824,7 @@ def main() -> int:
                 quotas_met,
             )
         except Exception as exc:
+            summary_delivered = False
             print(f"[NOTIFY WARN] Summary notification failed: {exc}")
 
         print(f"\nSource failures (isolated): {dict(source_failures)}")
@@ -838,6 +843,12 @@ def main() -> int:
             )
         )
         print(f"=== Done. New unique leads: {total_added} ===\n")
+        if not summary_delivered:
+            print(
+                "[NOTIFY REQUIRED] Collection data is safe, but the final "
+                "management email was not delivered. Recovery is required."
+            )
+            return 1
         return 0 if quotas_met else 2
     finally:
         scraper_browser.close()
