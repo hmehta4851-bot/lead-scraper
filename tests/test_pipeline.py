@@ -76,6 +76,18 @@ class PipelineTests(unittest.TestCase):
             watchdog,
         )
 
+    def test_all_workflows_opt_in_to_node24_runtime(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        workflows = sorted((repo_root / ".github/workflows").glob("*.yml"))
+
+        self.assertTrue(workflows)
+        for workflow in workflows:
+            with self.subTest(workflow=workflow.name):
+                self.assertIn(
+                    "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true",
+                    workflow.read_text(),
+                )
+
     def test_daily_collection_has_bounded_low_yield_city_fallback(self):
         self.assertEqual(MAX_CITIES_PER_DAY, 20)
 
