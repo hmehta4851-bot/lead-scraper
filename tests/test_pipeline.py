@@ -27,6 +27,20 @@ from sku_catalog import (
 
 
 class PipelineTests(unittest.TestCase):
+    def test_workflow_has_early_missed_schedule_recovery(self):
+        repo_root = Path(__file__).resolve().parents[1]
+        daily = (repo_root / ".github/workflows/daily.yml").read_text()
+        watchdog = (
+            repo_root / ".github/workflows/watchdog.yml"
+        ).read_text()
+
+        self.assertIn('cron: "17 2 * * 1-6"', daily)
+        self.assertIn('cron: "47 2 * * 1-6"', watchdog)
+        self.assertIn('cron: "17 3 * * 1-6"', watchdog)
+        self.assertIn('cron: "17 5 * * 1-6"', watchdog)
+        self.assertIn('cron: "17 9 * * 1-6"', watchdog)
+        self.assertIn("gh workflow run daily.yml", watchdog)
+
     def test_all_sources_are_attempted_despite_failures(self):
         attempted = []
 

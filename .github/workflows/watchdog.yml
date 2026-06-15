@@ -2,8 +2,12 @@ name: Sunzone Prospect Flow - Self-Healing Watchdog
 
 on:
   schedule:
-    - cron: "30 5 * * 1-6"  # 11:00 AM IST Mon-Sat
-    - cron: "30 9 * * 1-6"  # 3:00 PM IST Mon-Sat
+    # Early checks recover a daily cron that GitHub delayed or dropped.
+    # Later checks recover a failed or quota-short collection.
+    - cron: "47 2 * * 1-6"  # 8:17 AM IST Mon-Sat
+    - cron: "17 3 * * 1-6"  # 8:47 AM IST Mon-Sat
+    - cron: "17 5 * * 1-6"  # 10:47 AM IST Mon-Sat
+    - cron: "17 9 * * 1-6"  # 2:47 PM IST Mon-Sat
   workflow_run:
     workflows: ["Sunzone Prospect Flow - Daily Collection"]
     types: [completed]

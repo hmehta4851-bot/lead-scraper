@@ -2,7 +2,9 @@ name: Sunzone Prospect Flow - Daily Collection
 
 on:
   schedule:
-    - cron: "30 2 * * 1-6"  # 8:00 AM IST Mon–Sat (UTC+5:30, 0=Sun)
+    # Use an uncommon minute because GitHub schedules near common clock
+    # boundaries are more likely to be delayed under platform load.
+    - cron: "17 2 * * 1-6"  # 7:47 AM IST Mon-Sat (UTC+5:30, 0=Sun)
   workflow_dispatch:       # manual trigger button
 
 env:
