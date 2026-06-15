@@ -119,6 +119,17 @@ def check_static_configuration() -> list[str]:
     return checks
 
 
+def _repairable_header_drift(headers: list[str]) -> bool:
+    """Allow one label edit, never missing or reordered sheet columns."""
+    if len(headers) != len(SHEET_HEADERS):
+        return False
+    mismatches = sum(
+        actual != expected
+        for actual, expected in zip(headers, SHEET_HEADERS)
+    )
+    return mismatches == 1
+
+
 def check_google_sheet() -> list[str]:
     client = get_client()
     spreadsheet = client.open_by_key(SHEET_ID)
@@ -132,10 +143,19 @@ def check_google_sheet() -> list[str]:
             raise RuntimeError(f"Missing Google Sheet tab: {tab_name}")
         headers = worksheet.row_values(1)
         if headers != SHEET_HEADERS:
-            raise RuntimeError(
-                f"Incorrect headers in {tab_name}: expected {SHEET_HEADERS}, "
-                f"found {headers}"
-            )
+            if not _repairable_header_drift(headers):
+                raise RuntimeError(
+                    f"Unsafe header structure in {tab_name}: "
+                    f"expected {SHEET_HEADERS}, found {headers}"
+                )
+            worksheet.update("A1", [SHEET_HEADERS])
+            repaired = worksheet.row_values(1)
+            if repaired != SHEET_HEADERS:
+                raise RuntimeError(
+                    f"Could not repair headers in {tab_name}: {repaired}"
+                )
+            checks.append(f"{vertical}: {tab_name} header labels repaired")
+            continue
         checks.append(f"{vertical}: {tab_name} accessible")
     return checks
 

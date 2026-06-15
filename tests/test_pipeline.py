@@ -5,6 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import main
+import preflight
 from config import MAX_LEADS_PER_SOURCE_PER_VERTICAL, VERTICALS, iter_products
 from keyword_library import (
     add_buyer_intent,
@@ -28,6 +29,20 @@ from sku_catalog import (
 
 
 class PipelineTests(unittest.TestCase):
+    def test_preflight_repairs_only_small_header_label_drift(self):
+        headers = list(preflight.SHEET_HEADERS)
+        headers[3] = "UPDATE "
+        self.assertTrue(preflight._repairable_header_drift(headers))
+
+        reordered = list(preflight.SHEET_HEADERS)
+        reordered[2], reordered[3] = reordered[3], reordered[2]
+        self.assertFalse(preflight._repairable_header_drift(reordered))
+
+        structurally_changed = list(preflight.SHEET_HEADERS[:-1])
+        self.assertFalse(
+            preflight._repairable_header_drift(structurally_changed)
+        )
+
     def test_workflow_has_early_missed_schedule_recovery(self):
         repo_root = Path(__file__).resolve().parents[1]
         daily = (repo_root / ".github/workflows/daily.yml").read_text()
