@@ -100,9 +100,16 @@ def notify_progress_update(city, completed, total, leads_so_far, elapsed_min):
     )
 
 
-def notify_existing_completion(city, vertical_counts, vertical_target=50):
+def notify_existing_completion(
+    city,
+    vertical_counts,
+    vertical_target=50,
+    sufficient_target=None,
+):
+    sufficient_target = sufficient_target or vertical_target
     quota_lines = [
-        f"  {vertical:<20} {count:>3}/{vertical_target}  COMPLETE"
+        f"  {vertical:<20} {count:>3}/{vertical_target}  "
+        f"{'TARGET' if count >= vertical_target else 'ENOUGH'}"
         for vertical, count in vertical_counts.items()
     ]
     send_notification(
@@ -111,8 +118,10 @@ def notify_existing_completion(city, vertical_counts, vertical_target=50):
         ),
         body=(
             "Sunzone Prospect Flow recovery verified that today's approved "
-            "Google Sheet already contains the full qualified-lead target.\n\n"
+            "Google Sheet already contains enough qualified leads for the day.\n\n"
             f"City batch: {city}\n\n"
+            f"Daily enough floor: {sufficient_target}\n"
+            f"Ideal target: {vertical_target}\n\n"
             "VERTICAL QUOTAS\n"
             + "\n".join(quota_lines)
             + "\n\nNo duplicate collection was performed. "
@@ -132,7 +141,9 @@ def notify_daily_summary(
     vertical_counts=None,
     vertical_target=50,
     complete=True,
+    sufficient_target=None,
 ):
+    sufficient_target = sufficient_target or vertical_target
     sep = "─" * 42
 
     # Product breakdown
@@ -166,7 +177,12 @@ def notify_daily_summary(
 
     quota_lines = []
     for vertical, count in (vertical_counts or {}).items():
-        status = "COMPLETE" if count >= vertical_target else "SHORT"
+        if count >= vertical_target:
+            status = "TARGET"
+        elif count >= sufficient_target:
+            status = "ENOUGH"
+        else:
+            status = "SHORT"
         quota_lines.append(
             f"  {vertical:<20} {count:>3}/{vertical_target}  {status}"
         )
@@ -181,6 +197,8 @@ def notify_daily_summary(
   Run Status     : {run_status}
   New Leads      : {total_leads}
   Duration       : {duration_str}
+  Daily Enough   : {sufficient_target} per vertical
+  Ideal Target   : {vertical_target} per vertical
   Sheet          : https://docs.google.com/spreadsheets/d/1p48H_6PpWgYFyaAtPXijyeAlk1Tgq5kUUQORMBgG8eM
 
 {sep}

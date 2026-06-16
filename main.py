@@ -11,6 +11,7 @@ from datetime import date
 from urllib.parse import urlparse
 
 from config import (
+    DAILY_ENOUGH_LEADS_PER_VERTICAL,
     INDIA_CITY_ROTATION,
     KEYWORDS_PER_PRODUCT_PER_RUN,
     LEADS_PER_PRODUCT,
@@ -467,8 +468,17 @@ def vertical_quotas_met(
     verticals,
     target: int = TARGET_LEADS_PER_VERTICAL,
 ) -> bool:
-    """Fail closed unless every configured vertical reaches its target."""
+    """Return true only when every configured vertical reaches a target."""
     return all(vertical_counts.get(vertical, 0) >= target for vertical in verticals)
+
+
+def daily_enough_leads_met(
+    vertical_counts: Counter | dict[str, int],
+    verticals,
+    target: int = DAILY_ENOUGH_LEADS_PER_VERTICAL,
+) -> bool:
+    """Stop the day once every vertical reaches the accepted floor."""
+    return vertical_quotas_met(vertical_counts, verticals, target)
 
 
 def city_expansion_needed(
@@ -540,7 +550,7 @@ def main() -> int:
             vertical: Counter(snapshot_source_counts.get(vertical, {}))
             for vertical in products_by_vertical
         }
-        if same_day_retry and vertical_quotas_met(
+        if same_day_retry and daily_enough_leads_met(
             vertical_counts,
             products_by_vertical,
         ):
@@ -556,6 +566,7 @@ def main() -> int:
                 ", ".join(completed_cities),
                 dict(vertical_counts),
                 TARGET_LEADS_PER_VERTICAL,
+                DAILY_ENOUGH_LEADS_PER_VERTICAL,
             )
             return 0
         if same_day_retry:
@@ -592,7 +603,7 @@ def main() -> int:
         budget_exhausted = False
         used_cities = []
         for city_offset in range(MAX_CITIES_PER_DAY):
-            if time.time() >= deadline or vertical_quotas_met(
+            if time.time() >= deadline or daily_enough_leads_met(
                 vertical_counts,
                 products_by_vertical,
             ):
@@ -621,7 +632,7 @@ def main() -> int:
                 incomplete = [
                     vertical
                     for vertical in products_by_vertical
-                    if vertical_counts[vertical] < TARGET_LEADS_PER_VERTICAL
+                    if vertical_counts[vertical] < DAILY_ENOUGH_LEADS_PER_VERTICAL
                 ]
                 if not incomplete:
                     break
@@ -643,7 +654,10 @@ def main() -> int:
                         if time.time() >= deadline:
                             budget_exhausted = True
                             break
-                        if vertical_counts[vertical] >= TARGET_LEADS_PER_VERTICAL:
+                        if (
+                            vertical_counts[vertical]
+                            >= DAILY_ENOUGH_LEADS_PER_VERTICAL
+                        ):
                             break
                         entry_index = (
                             buyer_cursor + query_offset
@@ -821,6 +835,10 @@ def main() -> int:
             vertical_counts,
             products_by_vertical,
         )
+        daily_floor_met = daily_enough_leads_met(
+            vertical_counts,
+            products_by_vertical,
+        )
         if not used_cities:
             used_cities = [city]
         complete_city_batch(
@@ -848,7 +866,8 @@ def main() -> int:
                 dict(source_failures),
                 dict(vertical_counts),
                 TARGET_LEADS_PER_VERTICAL,
-                quotas_met,
+                daily_floor_met,
+                DAILY_ENOUGH_LEADS_PER_VERTICAL,
             )
         except Exception as exc:
             summary_delivered = False
@@ -876,7 +895,7 @@ def main() -> int:
                 "management email was not delivered. Recovery is required."
             )
             return 1
-        return 0 if quotas_met else 2
+        return 0 if daily_floor_met else 2
     finally:
         scraper_browser.close()
 

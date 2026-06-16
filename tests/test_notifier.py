@@ -75,15 +75,17 @@ class NotifierTests(unittest.TestCase):
     def test_existing_completion_sends_management_confirmation(self, send):
         notifier.notify_existing_completion(
             "Mumbai, Maharashtra",
-            {"Playful": 50, "Powerful": 52},
+            {"Playful": 35, "Powerful": 52},
             50,
+            35,
         )
 
         subject = send.call_args.kwargs["subject"]
         body = send.call_args.kwargs["body"]
         self.assertIn("COMPLETION CONFIRMED", subject)
         self.assertIn("Playful", body)
-        self.assertIn("50/50", body)
+        self.assertIn("35/50", body)
+        self.assertIn("Daily enough floor: 35", body)
         self.assertIn("No duplicate collection", body)
 
 

@@ -7,6 +7,7 @@ from unittest.mock import patch
 import main
 import preflight
 from config import (
+    DAILY_ENOUGH_LEADS_PER_VERTICAL,
     MAX_CITIES_PER_DAY,
     MAX_LEADS_PER_SOURCE_PER_VERTICAL,
     MAX_SAME_CITY_ROUNDS,
@@ -138,7 +139,7 @@ class PipelineTests(unittest.TestCase):
     def test_preflight_locks_business_policy(self):
         checks = preflight.check_static_configuration()
         self.assertIn(
-            "50-lead target with 25-lead city expansion floor",
+            "50-lead ideal target with 35-lead daily enough floor and 25-lead city expansion floor",
             checks,
         )
         self.assertIn(
@@ -643,6 +644,15 @@ class PipelineTests(unittest.TestCase):
             MAX_LEADS_PER_SOURCE_PER_VERTICAL * 2,
             TARGET_LEADS_PER_VERTICAL,
         )
+
+    def test_daily_floor_is_complete_at_35_even_if_ideal_50_not_met(self):
+        counts = {
+            vertical: DAILY_ENOUGH_LEADS_PER_VERTICAL
+            for vertical in VERTICALS
+        }
+        self.assertTrue(main.daily_enough_leads_met(counts, VERTICALS))
+        counts["Playful"] = DAILY_ENOUGH_LEADS_PER_VERTICAL - 1
+        self.assertFalse(main.daily_enough_leads_met(counts, VERTICALS))
 
     def test_city_quota_fails_closed_if_one_vertical_is_below_50(self):
         counts = {vertical: 50 for vertical in VERTICALS}

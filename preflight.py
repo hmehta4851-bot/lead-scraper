@@ -9,6 +9,7 @@ from pathlib import Path
 
 from config import (
     COMPETITOR_BRANDS,
+    DAILY_ENOUGH_LEADS_PER_VERTICAL,
     INDIA_CITY_ROTATION,
     KEYWORDS_PER_PRODUCT_PER_RUN,
     MAX_CITIES_PER_DAY,
@@ -86,6 +87,10 @@ def check_static_configuration() -> list[str]:
         "target leads per vertical": (
             TARGET_LEADS_PER_VERTICAL,
             50,
+        ),
+        "daily enough floor per vertical": (
+            DAILY_ENOUGH_LEADS_PER_VERTICAL,
+            35,
         ),
         "city expansion floor per vertical": (
             MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION,
@@ -193,7 +198,7 @@ def check_static_configuration() -> list[str]:
         "18 buyer-search families",
         "152 inventory SKUs and 18 website systems",
         "11 lead sources",
-        "50-lead target with 25-lead city expansion floor",
+        "50-lead ideal target with 35-lead daily enough floor and 25-lead city expansion floor",
         "8 complete keyword rounds before any town expansion",
         "strict buyer, supplier and competitor qualification rules",
         "25-lead daily source cap per vertical",
