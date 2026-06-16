@@ -922,7 +922,7 @@ class PipelineTests(unittest.TestCase):
         cities = [f"City {index}" for index in range(10)]
         self.assertEqual(
             get_batch_start_index(state, cities, "2026-06-15"),
-            3,
+            5,
         )
         self.assertEqual(
             get_batch_start_index(state, cities, "2026-06-16"),
@@ -931,7 +931,7 @@ class PipelineTests(unittest.TestCase):
 
     def test_same_day_recovery_advances_only_newly_added_towns(self):
         state = {
-            "city_index": 5,
+            "city_index": 3,
             "last_run_date": "2026-06-15",
             "last_run_city": "City 3",
             "last_run_cities": ["City 3", "City 4"],
@@ -950,7 +950,7 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(state["last_run_city_count"], 4)
         self.assertEqual(
             get_batch_start_index(state, cities, "2026-06-15"),
-            3,
+            7,
         )
 
     def test_small_town_batch_advances_past_every_used_town(self):
@@ -990,10 +990,10 @@ class PipelineTests(unittest.TestCase):
                 "2026-06-15",
                 ["Mumbai, Maharashtra"],
             )
-        self.assertEqual(state["city_index"], 1)
+        self.assertEqual(state["city_index"], 0)
         self.assertEqual(
             get_scheduled_city(state, cities, "2026-06-16"),
-            "Pune, Maharashtra",
+            "Mumbai, Maharashtra",
         )
         self.assertEqual(
             get_batch_start_index(state, cities, "2026-06-15"),
@@ -1023,12 +1023,37 @@ class PipelineTests(unittest.TestCase):
                 "2026-06-15",
                 ["Mumbai", "Pune"],
             )
-        self.assertEqual(state["city_index"], 2)
+        self.assertEqual(state["city_index"], 0)
         self.assertEqual(state["last_run_cities"], ["Mumbai", "Pune"])
         self.assertEqual(
             get_scheduled_city(state, cities, "2026-06-16"),
-            "Nagpur",
+            "Mumbai",
         )
+
+    def test_incomplete_day_keeps_same_city_for_next_date(self):
+        state = {
+            "city_index": 1,
+            "last_run_date": "",
+            "last_run_city": "",
+            "last_run_cities": [],
+            "last_run_city_count": 0,
+            "rotation_cycle": 1,
+        }
+        cities = ["Mumbai", "Pune", "Nagpur"]
+        with patch("state.save_state", return_value=None):
+            complete_city_batch(
+                state,
+                cities,
+                "2026-06-16",
+                ["Pune"],
+                completed=False,
+            )
+        self.assertEqual(state["city_index"], 1)
+        self.assertEqual(
+            get_scheduled_city(state, cities, "2026-06-17"),
+            "Pune",
+        )
+        self.assertEqual(state["last_transition"], "carryover_batch_pending")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 {
   "tier": 1,
-  "city_index": 3,
+  "city_index": 1,
   "exhausted_tier1": false,
   "exhausted_tier2": false,
   "keyword_cursors": {
@@ -23,7 +23,7 @@
     "Graceful::Multi-Sport Turf / Tennis Turf / Padel Turf": 8,
     "Graceful::Turf Accessories": 6
   },
-  "last_transition": "",
+  "last_transition": "carryover_batch_pending",
   "sku_cursors": {
     "Playful::EPDM Playground / Wet Pour Flooring": 0,
     "Playful::EPDM Granules / SBR Granules / PU Binder": 27,

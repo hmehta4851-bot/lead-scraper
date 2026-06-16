@@ -39,7 +39,7 @@ def save_state(state):
 
 
 def get_scheduled_city(state, cities, run_date):
-    """Keep manual/retry runs on one city, but change city on a new date."""
+    """Keep retries on the active town until a day is formally completed."""
     run_date = str(run_date)
     if state.get("last_run_date") == run_date and state.get("last_run_city"):
         return state["last_run_city"]
@@ -47,33 +47,48 @@ def get_scheduled_city(state, cities, run_date):
 
 
 def get_batch_start_index(state, cities, run_date):
-    """Resume today's incomplete batch without changing tomorrow's rotation."""
-    current_index = int(state.get("city_index", 0)) % len(cities)
-    if state.get("last_run_date") != str(run_date):
-        return current_index
-    consumed = max(1, int(state.get("last_run_city_count", 1)))
-    return (current_index - consumed) % len(cities)
+    """Resume the active batch from its original town index."""
+    return int(state.get("city_index", 0)) % len(cities)
 
 
 def record_city_batch_progress(state, cities, run_date, used_cities):
-    """Reserve towns as soon as they are worked so tomorrow does not repeat."""
+    """Persist the current day's worked towns without advancing rotation."""
     run_date = str(run_date)
     used_cities = list(used_cities)
     if not used_cities:
         return state
-    if state.get("last_run_date") == run_date:
-        previous_consumed = max(1, int(state.get("last_run_city_count", 1)))
-        consumed = max(previous_consumed, len(used_cities))
-        additional = consumed - previous_consumed
-        if additional:
-            state["city_index"] = (
-                int(state.get("city_index", 0)) + additional
-            ) % len(cities)
-        state["last_run_cities"] = used_cities
-        state["last_run_city"] = used_cities[0]
-        state["last_run_city_count"] = consumed
+    state["last_run_date"] = run_date
+    state["last_run_city"] = used_cities[0]
+    state["last_run_cities"] = list(used_cities)
+    state["last_run_city_count"] = max(1, len(used_cities))
+    save_state(state)
+    return state
+
+
+def complete_city_batch(
+    state,
+    cities,
+    run_date,
+    used_cities,
+    completed=True,
+):
+    """Finalize the active batch and advance rotation only after a good day."""
+    used_cities = list(used_cities)
+    already_completed = (
+        completed
+        and state.get("last_run_date") == str(run_date)
+        and state.get("last_run_cities") == used_cities
+        and state.get("last_transition") != "carryover_batch_pending"
+    )
+    if already_completed:
+        return state
+
+    state = record_city_batch_progress(state, cities, run_date, used_cities)
+    if not completed or not used_cities:
+        state["last_transition"] = "carryover_batch_pending"
         save_state(state)
         return state
+
     consumed = max(1, len(used_cities))
     next_index = int(state.get("city_index", 0)) + consumed
     cycles, next_index = divmod(next_index, len(cities))
@@ -82,15 +97,6 @@ def record_city_batch_progress(state, cities, run_date, used_cities):
         state["last_transition"] = "national_rotation_restarted"
     else:
         state["last_transition"] = ""
-    state["last_run_date"] = run_date
-    state["last_run_city"] = used_cities[0]
-    state["last_run_cities"] = list(used_cities)
-    state["last_run_city_count"] = consumed
     state["city_index"] = next_index
     save_state(state)
     return state
-
-
-def complete_city_batch(state, cities, run_date, used_cities):
-    """Finalize the towns included in today's combined lead batch."""
-    return record_city_batch_progress(state, cities, run_date, used_cities)

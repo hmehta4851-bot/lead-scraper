@@ -859,6 +859,7 @@ def main() -> int:
             INDIA_CITY_ROTATION,
             run_date,
             used_cities,
+            completed=daily_floor_met,
         )
 
         duration = int((time.time() - started) / 60)
