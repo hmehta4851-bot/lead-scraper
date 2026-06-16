@@ -142,8 +142,10 @@ def notify_daily_summary(
     vertical_target=50,
     complete=True,
     sufficient_target=None,
+    healthy_target=None,
 ):
     sufficient_target = sufficient_target or vertical_target
+    healthy_target = healthy_target or sufficient_target
     sep = "─" * 42
 
     # Product breakdown
@@ -181,8 +183,10 @@ def notify_daily_summary(
             status = "TARGET"
         elif count >= sufficient_target:
             status = "ENOUGH"
+        elif count >= healthy_target:
+            status = "HEALTHY"
         else:
-            status = "SHORT"
+            status = "WEAK"
         quota_lines.append(
             f"  {vertical:<20} {count:>3}/{vertical_target}  {status}"
         )
@@ -197,6 +201,7 @@ def notify_daily_summary(
   Run Status     : {run_status}
   New Leads      : {total_leads}
   Duration       : {duration_str}
+  Minimum Healthy: {healthy_target} per vertical
   Daily Enough   : {sufficient_target} per vertical
   Ideal Target   : {vertical_target} per vertical
   Sheet          : https://docs.google.com/spreadsheets/d/1p48H_6PpWgYFyaAtPXijyeAlk1Tgq5kUUQORMBgG8eM

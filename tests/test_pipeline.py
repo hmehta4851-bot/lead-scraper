@@ -11,6 +11,7 @@ from config import (
     MAX_CITIES_PER_DAY,
     MAX_LEADS_PER_SOURCE_PER_VERTICAL,
     MAX_SAME_CITY_ROUNDS,
+    MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION,
     SOURCE_ATTEMPTS,
     TARGET_LEADS_PER_VERTICAL,
     VERTICALS,
@@ -653,6 +654,15 @@ class PipelineTests(unittest.TestCase):
         self.assertTrue(main.daily_enough_leads_met(counts, VERTICALS))
         counts["Playful"] = DAILY_ENOUGH_LEADS_PER_VERTICAL - 1
         self.assertFalse(main.daily_enough_leads_met(counts, VERTICALS))
+
+    def test_minimum_healthy_floor_requires_every_vertical_at_25(self):
+        counts = {
+            vertical: MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION
+            for vertical in VERTICALS
+        }
+        self.assertTrue(main.minimum_healthy_leads_met(counts, VERTICALS))
+        counts["Playful"] = 9
+        self.assertFalse(main.minimum_healthy_leads_met(counts, VERTICALS))
 
     def test_city_quota_fails_closed_if_one_vertical_is_below_50(self):
         counts = {vertical: 50 for vertical in VERTICALS}

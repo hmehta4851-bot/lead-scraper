@@ -481,6 +481,15 @@ def daily_enough_leads_met(
     return vertical_quotas_met(vertical_counts, verticals, target)
 
 
+def minimum_healthy_leads_met(
+    vertical_counts: Counter | dict[str, int],
+    verticals,
+    target: int = MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION,
+) -> bool:
+    """Ensure no vertical is left in an obviously weak state."""
+    return vertical_quotas_met(vertical_counts, verticals, target)
+
+
 def city_expansion_needed(
     vertical_counts: Counter | dict[str, int],
     verticals,
@@ -839,6 +848,10 @@ def main() -> int:
             vertical_counts,
             products_by_vertical,
         )
+        healthy_floor_met = minimum_healthy_leads_met(
+            vertical_counts,
+            products_by_vertical,
+        )
         if not used_cities:
             used_cities = [city]
         complete_city_batch(
@@ -868,6 +881,7 @@ def main() -> int:
                 TARGET_LEADS_PER_VERTICAL,
                 daily_floor_met,
                 DAILY_ENOUGH_LEADS_PER_VERTICAL,
+                MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION,
             )
         except Exception as exc:
             summary_delivered = False
@@ -888,6 +902,12 @@ def main() -> int:
                 for vertical in products_by_vertical
             )
         )
+        if not healthy_floor_met:
+            print(
+                "[QUALITY FLOOR] At least one vertical remained below the "
+                f"minimum healthy floor of "
+                f"{MIN_LEADS_PER_VERTICAL_BEFORE_CITY_EXPANSION}."
+            )
         print(f"=== Done. New unique leads: {total_added} ===\n")
         if not summary_delivered:
             print(
