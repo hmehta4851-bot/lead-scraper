@@ -54,7 +54,7 @@ class EnricherTests(unittest.TestCase):
         self.assertEqual(_extract_contact_from_page(soup), ("", ""))
 
     def test_extracts_and_filters_contact_details(self):
-        self.assertEqual(_extract_phones("+91 98765 43210"), ["9876543210"])
+        self.assertEqual(_extract_phones("+91 98765 43211"), ["9876543211"])
         self.assertEqual(
             _extract_emails("sales@example.com hello@sunzone.in"),
             ["hello@sunzone.in"],
@@ -63,7 +63,7 @@ class EnricherTests(unittest.TestCase):
     def test_phone_lead_is_actionable_without_invented_person_data(self):
         self.assertTrue(
             is_actionable_lead(
-                {"company": "Example Sports", "phone": "9876543210"}
+                {"company": "Example Sports", "phone": "9876543211"}
             )
         )
         self.assertFalse(is_actionable_lead({"company": "Example Sports", "phone": ""}))

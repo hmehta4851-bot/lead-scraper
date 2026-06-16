@@ -10,7 +10,7 @@ class BingTests(unittest.TestCase):
           <item>
             <title>Acme Fitness Gym - Mumbai</title>
             <link>https://acmefitness.example/contact</link>
-            <description>Call 98765 43210 for membership.</description>
+            <description>Call 98765 43211 for membership.</description>
           </item>
           <item>
             <title>LinkedIn</title>
@@ -22,7 +22,7 @@ class BingTests(unittest.TestCase):
         leads = _rss_results(xml, max_results=5)
         self.assertEqual(len(leads), 1)
         self.assertEqual(leads[0]["company"], "Acme Fitness Gym")
-        self.assertEqual(leads[0]["phone"], "9876543210")
+        self.assertEqual(leads[0]["phone"], "9876543211")
         self.assertEqual(leads[0]["source"], "Bing")
 
 

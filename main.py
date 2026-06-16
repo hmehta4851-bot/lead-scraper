@@ -45,6 +45,7 @@ from notifier import (
     notify_progress_update,
     notify_scraper_started,
 )
+from phone_quality import normalize_indian_mobile
 from scrapers import (
     bing,
     duckduckgo,
@@ -161,12 +162,7 @@ def _lead_score(lead: dict) -> int:
 
 
 def _norm_phone(value: str) -> str:
-    digits = re.sub(r"\D", "", str(value))
-    if digits.startswith("91") and len(digits) == 12:
-        digits = digits[2:]
-    if digits.startswith("0") and len(digits) == 11:
-        digits = digits[1:]
-    return digits[-10:] if len(digits) >= 10 else ""
+    return normalize_indian_mobile(value)
 
 
 def _norm_company(name: str) -> str:
@@ -243,9 +239,9 @@ def _deduplicate(raw_leads: list[dict]) -> list[dict]:
     output: list[dict] = []
     for lead in raw_leads:
         phone = _norm_phone(str(lead.get("phone", "")))
+        lead["phone"] = phone
         company = _norm_company(str(lead.get("company", "")))
         if phone:
-            lead["phone"] = phone
             if phone in seen_phones:
                 continue
             seen_phones.add(phone)

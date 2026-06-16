@@ -5,6 +5,8 @@ import json
 import time
 from collections import Counter
 
+from phone_quality import normalize_indian_mobile
+
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
@@ -115,7 +117,7 @@ def load_daily_snapshot(sheet_id, tab_names, run_date, city=None):
 
 
 def _normalize_phone(value):
-    return "".join(c for c in str(value) if c.isdigit())[-10:]
+    return normalize_indian_mobile(value)
 
 
 def _normalize_city(value):
@@ -153,13 +155,16 @@ def append_leads(
     accepted_phones = []
     for lead in leads:
         phone = _normalize_phone(lead.get("Phone", ""))
-        if phone and phone in existing_phones:
+        if not phone:
             continue
+        if phone in existing_phones:
+            continue
+        lead = dict(lead)
+        lead["Phone"] = phone
         row = [str(lead.get(h, "")) for h in headers]
         rows_to_add.append(row)
         accepted_leads.append(lead)
-        if phone:
-            accepted_phones.append(phone)
+        accepted_phones.append(phone)
 
     if rows_to_add:
         ws.append_rows(rows_to_add, value_input_option="USER_ENTERED")

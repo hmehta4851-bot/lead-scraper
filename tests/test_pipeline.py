@@ -29,6 +29,7 @@ from state import (
     record_city_batch_progress,
 )
 from qualification import qualify_lead
+from phone_quality import normalize_indian_mobile
 from sku_catalog import (
     format_sku_target,
     load_sku_catalog,
@@ -38,6 +39,23 @@ from sku_catalog import (
 
 
 class PipelineTests(unittest.TestCase):
+    def test_phone_quality_requires_indian_mobile_pattern(self):
+        self.assertEqual(
+            normalize_indian_mobile("+91 98765 43211"),
+            "9876543211",
+        )
+        self.assertEqual(normalize_indian_mobile("09876543211"), "9876543211")
+        self.assertEqual(normalize_indian_mobile("2212345678"), "")
+        self.assertEqual(normalize_indian_mobile("1111111111"), "")
+        self.assertEqual(normalize_indian_mobile("9876543210"), "")
+        self.assertEqual(normalize_indian_mobile("12345"), "")
+
+    def test_invalid_source_phone_is_cleared_before_qualification(self):
+        leads = main._deduplicate(
+            [{"company": "Acme Sports", "phone": "2212345678"}]
+        )
+        self.assertEqual(leads, [])
+
     def test_preflight_repairs_only_small_header_label_drift(self):
         headers = list(preflight.SHEET_HEADERS)
         headers[3] = "UPDATE "
@@ -208,7 +226,7 @@ class PipelineTests(unittest.TestCase):
             calls["Flaky"] += 1
             if calls["Flaky"] == 1:
                 raise TimeoutError("temporary block")
-            return [{"company": "Recovered Gym", "phone": "9876543210"}]
+            return [{"company": "Recovered Gym", "phone": "9876543211"}]
 
         def stable(keyword, city, max_results):
             calls["Stable"] += 1
@@ -244,7 +262,7 @@ class PipelineTests(unittest.TestCase):
             main.is_actionable_lead(
                 {
                     "company": "Sunzone Sports",
-                    "phone": "9876543210",
+                    "phone": "9876543211",
                     "website": "https://sunzone.in",
                 }
             )
@@ -259,12 +277,12 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertTrue(
             main.is_competitor(
-                {"company": "CC Grass India", "phone": "9876543210"}
+                {"company": "CC Grass India", "phone": "9876543211"}
             )
         )
         self.assertFalse(
             main.is_competitor(
-                {"company": "Garcomondo Fitness Gym", "phone": "9876543210"}
+                {"company": "Garcomondo Fitness Gym", "phone": "9876543211"}
             )
         )
 
@@ -568,12 +586,12 @@ class PipelineTests(unittest.TestCase):
     def test_phone_dedup_normalizes_indian_formats(self):
         leads = main._deduplicate(
             [
-                {"company": "Acme Sports", "phone": "+91 98765 43210"},
-                {"company": "Acme Sports Pvt Ltd", "phone": "09876543210"},
+                {"company": "Acme Sports", "phone": "+91 98765 43211"},
+                {"company": "Acme Sports Pvt Ltd", "phone": "09876543211"},
             ]
         )
         self.assertEqual(len(leads), 1)
-        self.assertEqual(leads[0]["phone"], "9876543210")
+        self.assertEqual(leads[0]["phone"], "9876543211")
 
     def test_source_balancing_keeps_smaller_sources_visible(self):
         raw = []
@@ -637,12 +655,12 @@ class PipelineTests(unittest.TestCase):
         raw = [
             {
                 "company": "Large Fitness Gym",
-                "phone": "9876543210",
+                "phone": "9876543211",
                 "source": "Google Maps",
             },
             {
                 "company": "Independent Fitness Gym",
-                "phone": "9876543211",
+                "phone": "9876543212",
                 "source": "Yahoo",
             },
         ]
@@ -667,7 +685,7 @@ class PipelineTests(unittest.TestCase):
         qualified, _, reason = qualify_lead(
             {
                 "company": "Unknown Sports Flooring Manufacturer",
-                "phone": "9876543210",
+                "phone": "9876543211",
             },
             "Powerful",
         )
@@ -678,7 +696,7 @@ class PipelineTests(unittest.TestCase):
         qualified, _, reason = qualify_lead(
             {
                 "company": "Iron House Fitness Gym",
-                "phone": "9876543210",
+                "phone": "9876543211",
                 "website": "https://ironhouse.example",
                 "website_text": "Our gym includes an astro turf workout zone.",
             },
@@ -690,7 +708,7 @@ class PipelineTests(unittest.TestCase):
         qualified, _, reason = qualify_lead(
             {
                 "company": "Iron House Fitness Gym",
-                "phone": "9876543210",
+                "phone": "9876543211",
                 "website": "https://ironhouse.example",
                 "website_text": (
                     "Our gym has sports flooring, an installer-managed "
@@ -705,7 +723,7 @@ class PipelineTests(unittest.TestCase):
         qualified, _, reason = qualify_lead(
             {
                 "company": "Surface World",
-                "phone": "9876543210",
+                "phone": "9876543211",
                 "website": "https://surfaceworld.example",
                 "website_text": "We manufacture gym turf and we supply pan India.",
             },
@@ -718,7 +736,7 @@ class PipelineTests(unittest.TestCase):
         qualified, score, reason = qualify_lead(
             {
                 "company": "Iron House Fitness Gym",
-                "phone": "9876543210",
+                "phone": "9876543211",
                 "website": "https://ironhouse.example",
             },
             "Powerful",
@@ -730,14 +748,14 @@ class PipelineTests(unittest.TestCase):
     def test_obvious_buyer_skips_prequalification_enrichment(self):
         lead = {
             "company": "Iron House Fitness Gym",
-            "phone": "9876543210",
+            "phone": "9876543211",
             "website": "https://ironhouse.example",
         }
         with patch("main._enrich") as enrich:
             qualified = main._qualify_candidates(
                 [lead],
                 "Powerful",
-                {"9876543210"},
+                {"9876543211"},
             )
 
         self.assertEqual(qualified, [lead])
@@ -753,7 +771,7 @@ class PipelineTests(unittest.TestCase):
         def enrich(leads, seen_phones, limit):
             self.assertEqual(leads, [lead])
             self.assertEqual(limit, 25)
-            lead["phone"] = "9876543210"
+            lead["phone"] = "9876543211"
             lead["website_text"] = "fitness gym and health club"
 
         with patch("main._enrich", side_effect=enrich):
@@ -803,14 +821,14 @@ class PipelineTests(unittest.TestCase):
     def test_supplier_is_rejected_without_wasting_enrichment_time(self):
         lead = {
             "company": "Unknown Sports Flooring Manufacturer",
-            "phone": "9876543210",
+            "phone": "9876543211",
             "website": "https://supplier.example",
         }
         with patch("main._enrich") as enrich:
             qualified = main._qualify_candidates(
                 [lead],
                 "Powerful",
-                {"9876543210"},
+                {"9876543211"},
             )
 
         self.assertEqual(qualified, [])
@@ -820,7 +838,7 @@ class PipelineTests(unittest.TestCase):
         qualified, _, reason = qualify_lead(
             {
                 "company": "General Trading Company",
-                "phone": "9876543210",
+                "phone": "9876543211",
             },
             "Playful",
         )
