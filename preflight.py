@@ -296,7 +296,7 @@ def check_workflow_policy() -> list[str]:
         "Probe all 11 sources without writing leads",
         "python source_readiness.py",
         "Advance readiness email sent.",
-        "Fail patrol when source diversity is degraded",
+        "Record degraded source diversity warning",
     ]
     missing = [
         f"daily.yml: {value}"
