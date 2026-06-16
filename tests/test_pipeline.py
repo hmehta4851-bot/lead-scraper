@@ -64,11 +64,20 @@ class PipelineTests(unittest.TestCase):
         watchdog = (
             repo_root / ".github/workflows/watchdog.yml"
         ).read_text()
+        morning_kickoff = (
+            repo_root / ".github/workflows/morning-kickoff.yml"
+        ).read_text()
         readiness = (
             repo_root / ".github/workflows/readiness-patrol.yml"
         ).read_text()
 
         self.assertIn('cron: "17 2 * * 1-6"', daily)
+        self.assertIn('cron: "10 2 * * 1-6"', morning_kickoff)
+        self.assertIn('cron: "25 2 * * 1-6"', morning_kickoff)
+        self.assertIn('cron: "40 2 * * 1-6"', morning_kickoff)
+        self.assertIn('cron: "55 2 * * 1-6"', morning_kickoff)
+        self.assertIn('cron: "10 3 * * 1-6"', morning_kickoff)
+        self.assertIn('cron: "25 3 * * 1-6"', morning_kickoff)
         self.assertIn('cron: "47 2 * * 1-6"', watchdog)
         self.assertIn('cron: "17 3 * * 1-6"', watchdog)
         self.assertIn('cron: "17 5 * * 1-6"', watchdog)
@@ -81,6 +90,9 @@ class PipelineTests(unittest.TestCase):
             "Probe all 11 sources without writing leads",
             readiness,
         )
+        self.assertIn("gh workflow run daily.yml", morning_kickoff)
+        self.assertIn("already_active", morning_kickoff)
+        self.assertIn("already_success", morning_kickoff)
         self.assertIn("gh workflow run daily.yml", watchdog)
         self.assertIn('"cancelled"', watchdog)
         self.assertIn("genuine_failures", watchdog)
