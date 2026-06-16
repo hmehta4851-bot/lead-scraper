@@ -1,6 +1,6 @@
 {
   "tier": 1,
-  "city_index": 0,
+  "city_index": 1,
   "exhausted_tier1": false,
   "exhausted_tier2": false,
   "keyword_cursors": {
@@ -54,12 +54,11 @@
     "Sports Equipment": 32,
     "Woodplay": 32
   },
-  "last_run_date": "2026-06-13",
+  "last_run_date": "2026-06-15",
   "last_run_city": "Mumbai, Maharashtra",
   "last_run_cities": [
-    "Mumbai, Maharashtra",
-    "Delhi, Delhi"
+    "Mumbai, Maharashtra"
   ],
-  "last_run_city_count": 2,
+  "last_run_city_count": 1,
   "rotation_cycle": 1
 }

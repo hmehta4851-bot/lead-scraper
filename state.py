@@ -55,9 +55,12 @@ def get_batch_start_index(state, cities, run_date):
     return (current_index - consumed) % len(cities)
 
 
-def complete_city_batch(state, cities, run_date, used_cities):
-    """Advance past every town included in today's combined lead batch."""
+def record_city_batch_progress(state, cities, run_date, used_cities):
+    """Reserve towns as soon as they are worked so tomorrow does not repeat."""
     run_date = str(run_date)
+    used_cities = list(used_cities)
+    if not used_cities:
+        return state
     if state.get("last_run_date") == run_date:
         previous_consumed = max(1, int(state.get("last_run_city_count", 1)))
         consumed = max(previous_consumed, len(used_cities))
@@ -66,9 +69,8 @@ def complete_city_batch(state, cities, run_date, used_cities):
             state["city_index"] = (
                 int(state.get("city_index", 0)) + additional
             ) % len(cities)
-        if used_cities:
-            state["last_run_cities"] = list(used_cities)
-            state["last_run_city"] = used_cities[0]
+        state["last_run_cities"] = used_cities
+        state["last_run_city"] = used_cities[0]
         state["last_run_city_count"] = consumed
         save_state(state)
         return state
@@ -87,3 +89,8 @@ def complete_city_batch(state, cities, run_date, used_cities):
     state["city_index"] = next_index
     save_state(state)
     return state
+
+
+def complete_city_batch(state, cities, run_date, used_cities):
+    """Finalize the towns included in today's combined lead batch."""
+    return record_city_batch_progress(state, cities, run_date, used_cities)

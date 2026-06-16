@@ -26,6 +26,7 @@ from state import (
     complete_city_batch,
     get_batch_start_index,
     get_scheduled_city,
+    record_city_batch_progress,
 )
 from qualification import qualify_lead
 from sku_catalog import (
@@ -933,6 +934,63 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(state["city_index"], 3)
         self.assertEqual(state["last_run_cities"], ["B", "C"])
         self.assertEqual(state["last_run_city_count"], 2)
+
+    def test_worked_city_is_reserved_even_if_run_is_cancelled(self):
+        state = {
+            "city_index": 0,
+            "last_run_date": "",
+            "last_run_city": "",
+            "last_run_cities": [],
+            "last_run_city_count": 0,
+            "rotation_cycle": 1,
+        }
+        cities = ["Mumbai, Maharashtra", "Pune, Maharashtra"]
+        with patch("state.save_state", return_value=None):
+            record_city_batch_progress(
+                state,
+                cities,
+                "2026-06-15",
+                ["Mumbai, Maharashtra"],
+            )
+        self.assertEqual(state["city_index"], 1)
+        self.assertEqual(
+            get_scheduled_city(state, cities, "2026-06-16"),
+            "Pune, Maharashtra",
+        )
+        self.assertEqual(
+            get_batch_start_index(state, cities, "2026-06-15"),
+            0,
+        )
+
+    def test_worked_expansion_towns_are_reserved_before_final_summary(self):
+        state = {
+            "city_index": 0,
+            "last_run_date": "",
+            "last_run_city": "",
+            "last_run_cities": [],
+            "last_run_city_count": 0,
+            "rotation_cycle": 1,
+        }
+        cities = ["Mumbai", "Pune", "Nagpur"]
+        with patch("state.save_state", return_value=None):
+            record_city_batch_progress(
+                state,
+                cities,
+                "2026-06-15",
+                ["Mumbai"],
+            )
+            record_city_batch_progress(
+                state,
+                cities,
+                "2026-06-15",
+                ["Mumbai", "Pune"],
+            )
+        self.assertEqual(state["city_index"], 2)
+        self.assertEqual(state["last_run_cities"], ["Mumbai", "Pune"])
+        self.assertEqual(
+            get_scheduled_city(state, cities, "2026-06-16"),
+            "Nagpur",
+        )
 
 
 if __name__ == "__main__":

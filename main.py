@@ -66,6 +66,7 @@ from state import (
     get_batch_start_index,
     get_scheduled_city,
     load_state,
+    record_city_batch_progress,
     save_state,
 )
 
@@ -615,6 +616,12 @@ def main() -> int:
                     break
                 if city not in used_cities:
                     used_cities.append(city)
+                    record_city_batch_progress(
+                        state,
+                        INDIA_CITY_ROTATION,
+                        run_date,
+                        used_cities,
+                    )
                 incomplete = [
                     vertical
                     for vertical in products_by_vertical
