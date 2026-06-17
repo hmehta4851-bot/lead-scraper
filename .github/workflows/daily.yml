@@ -4,7 +4,7 @@ on:
   schedule:
     # Use an uncommon minute because GitHub schedules near common clock
     # boundaries are more likely to be delayed under platform load.
-    - cron: "17 2 * * 1-6"  # 7:47 AM IST Mon-Sat (UTC+5:30, 0=Sun)
+    - cron: "17 2 * * 1,3,5"  # 7:47 AM IST Mon/Wed/Fri — bot account days (UTC+5:30, 0=Sun)
   workflow_dispatch:       # manual trigger button
 
 env:
